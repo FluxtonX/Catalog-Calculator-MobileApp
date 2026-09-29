@@ -8,6 +8,8 @@ import 'screens/splash_screen.dart';
 import 'screens/search_artist_screen.dart';
 import 'screens/valuation_dashboard_screen.dart';
 
+import 'screens/auth_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -56,7 +58,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/login',
-      builder: (context, state) => const PlaceholderScreen(title: 'Login'),
+      builder: (context, state) => const AuthScreen(),
     ),
     GoRoute(
       path: '/',
