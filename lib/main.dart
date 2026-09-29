@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'screens/onboarding_screen.dart';
 
 import 'screens/splash_screen.dart';
+import 'screens/search_artist_screen.dart';
+import 'screens/valuation_dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +42,17 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const SearchArtistScreen(),
+    ),
+    GoRoute(
+      path: '/dashboard/:platform/:query',
+      builder: (context, state) => ValuationDashboardScreen(
+        platform: state.pathParameters['platform'] ?? 'spotify',
+        query: state.pathParameters['query'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/login',

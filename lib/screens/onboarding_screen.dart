@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,383 +9,393 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen>
-    with TickerProviderStateMixin {
+class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentIndex = 0;
+  int _currentPage = 0;
 
-  late AnimationController _driftController;
-  late Animation<double> _driftX1;
-  late Animation<double> _driftY1;
-  late Animation<double> _driftX2;
-  late Animation<double> _driftY2;
+  final Color _bgColor = const Color(0xFF041510);
+  final Color _brandGreen = const Color(0xFF34d399);
 
-  final List<Map<String, String>> slides = [
+  final List<Map<String, dynamic>> _pages = [
     {
-      'title': 'Professional Catalog Valuation',
-      'description':
-          'Instantly analyze and value music artist catalogs using real-time streaming data.',
-      'icon': 'assets/images/logo.png',
+      'icon': Icons.bar_chart_rounded,
+      'badge1Icon': Icons.music_note,
+      'badge1Text': '12.4M listeners',
+      'badge2Icon': Icons.verified_user_outlined,
+      'badge2Text': 'Data-backed',
+      'stepBadge': 'WELCOME',
+      'title1': 'Know What Your\n',
+      'titleHighlight': 'Catalog',
+      'title2': ' Is Really\nWorth',
+      'subtitle': 'A quick, data-backed read on the value of your streaming catalog — built for artists, managers and labels.',
     },
     {
-      'title': 'Comprehensive Metrics',
-      'description':
-          'Get deep insights across Spotify, YouTube, and iTunes to determine true market value.',
-      'icon': 'assets/images/logo.png',
+      'icon': Icons.search_rounded,
+      'badge1Icon': Icons.circle, // Will use custom color for Spotify later in UI
+      'badge1Text': 'Spotify',
+      'badge1Color': const Color(0xFF1DB954),
+      'badge2Icon': Icons.play_circle_filled, // YouTube
+      'badge2Text': 'YouTube',
+      'badge2Color': const Color(0xFFFF0000),
+      'stepBadge': 'STEP 1',
+      'title1': 'Search Any\n',
+      'titleHighlight': 'Artist',
+      'title2': ' In Seconds',
+      'subtitle': 'Type a name and pick from live suggestions, then pull their top tracks from the platforms that matter to you.',
     },
     {
-      'title': 'Track Your Portfolio',
-      'description':
-          'Save valuations, monitor changes, and get real-time alerts for your followed artists.',
-      'icon': 'assets/images/logo.png',
+      'icon': Icons.show_chart_rounded,
+      'badge1Icon': Icons.arrow_upward,
+      'badge1Text': '+18% YoY',
+      'badge2Icon': Icons.monetization_on,
+      'badge2Text': '\$1.2M est.',
+      'stepBadge': 'STEP 2',
+      'title1': 'Get Instant\n',
+      'titleHighlight': 'Valuations',
+      'title2': ' With Full\nBreakdown',
+      'subtitle': 'Toggle your data sources to see an indicative value with a clear per-platform breakdown, in seconds.',
     },
   ];
 
   @override
-  void initState() {
-    super.initState();
-    // Ambient Background Drift Animation
-    _driftController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    );
-    _driftX1 = Tween<double>(begin: -100, end: 50).animate(
-        CurvedAnimation(parent: _driftController, curve: Curves.easeInOutSine));
-    _driftY1 = Tween<double>(begin: -100, end: 20).animate(
-        CurvedAnimation(parent: _driftController, curve: Curves.easeInOutSine));
-    _driftX2 = Tween<double>(begin: -200, end: -50).animate(
-        CurvedAnimation(parent: _driftController, curve: Curves.easeInOutSine));
-    _driftY2 = Tween<double>(begin: 100, end: 250).animate(
-        CurvedAnimation(parent: _driftController, curve: Curves.easeInOutSine));
-
-    _driftController.repeat(reverse: true);
-  }
-
-  @override
   void dispose() {
     _pageController.dispose();
-    _driftController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentIndex < slides.length - 1) {
+    if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.fastOutSlowIn,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
       );
     } else {
-      context.go('/login');
+      context.go('/search');
     }
   }
 
-  void _skip() {
-    context.go('/login');
-  }
-
-  void _back() {
-    if (_currentIndex > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.fastOutSlowIn,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF020617), // Deep Slate 950
-      body: Stack(
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Ambient Animated Drifting Blobs
-          AnimatedBuilder(
-            animation: _driftController,
-            builder: (context, child) {
-              return Stack(
-                children: [
-                  Positioned(
-                    top: _driftY1.value,
-                    right: _driftX1.value,
-                    child: Container(
-                      width: 500,
-                      height: 500,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF10b981).withOpacity(0.05), // Emerald
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF10b981).withOpacity(0.15),
-                            blurRadius: 150,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: _driftY2.value,
-                    left: _driftX2.value,
-                    child: Container(
-                      width: 600,
-                      height: 600,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF3b82f6).withOpacity(0.04), // Blue
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF3b82f6).withOpacity(0.12),
-                            blurRadius: 180,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: _brandGreen.withOpacity(0.1),
+                  border: Border.all(color: _brandGreen.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(Icons.bar_chart, color: _brandGreen, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Catalog Calculator',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
           ),
-          
-          SafeArea(
-            child: Column(
+          GestureDetector(
+            onTap: () => context.go('/search'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                'SKIP',
+                style: GoogleFonts.inter(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphic(Map<String, dynamic> pageData) {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        // Main Box
+        Container(
+          width: 160,
+          height: 160,
+          decoration: BoxDecoration(
+            color: _bgColor,
+            border: Border.all(color: _brandGreen.withOpacity(0.3), width: 2),
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: _brandGreen.withOpacity(0.05),
+                blurRadius: 40,
+                spreadRadius: 10,
+              )
+            ]
+          ),
+          child: Icon(pageData['icon'], size: 80, color: _brandGreen),
+        ),
+        
+        // Top Left Badge
+        Positioned(
+          top: -12,
+          left: -40,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF081F17),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+              ]
+            ),
+            child: Row(
               children: [
-                // Top Navigation (Back / Skip)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back Button
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity: _currentIndex > 0 ? 1.0 : 0.0,
-                        child: GestureDetector(
-                          onTap: _back,
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withOpacity(0.1)),
-                            ),
-                            child: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 16),
-                          ),
-                        ),
-                      ),
-                      
-                      // Skip Button
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 300),
-                        opacity: _currentIndex < slides.length - 1 ? 1.0 : 0.0,
-                        child: GestureDetector(
-                          onTap: _skip,
-                          child: Text(
-                            'Skip',
-                            style: GoogleFonts.inter(
-                              color: const Color(0xFF34d399), // Emerald 400
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                Icon(
+                  pageData['badge1Icon'], 
+                  size: 14, 
+                  color: pageData['badge1Color'] ?? _brandGreen
                 ),
-                
-                // PageView Content
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    physics: const BouncingScrollPhysics(),
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                    },
-                    itemCount: slides.length,
-                    itemBuilder: (context, index) {
-                      final slide = slides[index];
-                      // Scale and Opacity effect for the active page
-                      return AnimatedBuilder(
-                        animation: _pageController,
-                        builder: (context, child) {
-                          double value = 1.0;
-                          if (_pageController.position.haveDimensions) {
-                            value = _pageController.page! - index;
-                            value = (1 - (value.abs() * 0.3)).clamp(0.0, 1.0);
-                          }
-                          return Transform.scale(
-                            scale: Curves.easeOut.transform(value),
-                            child: Opacity(
-                              opacity: value.clamp(0.0, 1.0),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Glassmorphism Floating Card
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(40),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(40),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.03),
-                                      borderRadius: BorderRadius.circular(40),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.1),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 30,
-                                        )
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        // Floating Icon
-                                        Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: const Color(0xFF10b981).withOpacity(0.1),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(0xFF10b981).withOpacity(0.2),
-                                                blurRadius: 40,
-                                                spreadRadius: 5,
-                                              )
-                                            ],
-                                          ),
-                                          child: Image.asset(
-                                            slide['icon']!,
-                                            width: 80,
-                                            height: 80,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 48),
-                                        Text(
-                                          slide['title']!,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.outfit(
-                                            color: Colors.white,
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w800,
-                                            height: 1.2,
-                                            letterSpacing: -0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          slide['description']!,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.inter(
-                                            color: const Color(0xFF94a3b8), // Slate 400
-                                            fontSize: 16,
-                                            height: 1.6,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                
-                // Bottom Controls
-                Padding(
-                  padding: const EdgeInsets.only(left: 32, right: 32, bottom: 48, top: 20),
-                  child: Column(
-                    children: [
-                      // Animated Dots Indicator
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          slides.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeOutCirc,
-                            margin: const EdgeInsets.symmetric(horizontal: 6),
-                            height: 6,
-                            width: _currentIndex == index ? 32 : 12,
-                            decoration: BoxDecoration(
-                              color: _currentIndex == index
-                                  ? const Color(0xFF10b981) // Emerald 500
-                                  : Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(100),
-                              boxShadow: _currentIndex == index
-                                  ? [
-                                      BoxShadow(
-                                        color: const Color(0xFF10b981).withOpacity(0.5),
-                                        blurRadius: 10,
-                                      )
-                                    ]
-                                  : [],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      
-                      // Primary CTA Button
-                      GestureDetector(
-                        onTap: _nextPage,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF10b981), Color(0xFF059669)], // Emerald 500 to 600
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF10b981).withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            _currentIndex == slides.length - 1
-                                ? 'Get Started'
-                                : 'Continue',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 6),
+                Text(
+                  pageData['badge1Text'],
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+        
+        // Bottom Right Badge
+        Positioned(
+          bottom: -12,
+          right: -40,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF081F17),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+              ]
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  pageData['badge2Icon'], 
+                  size: 14, 
+                  color: pageData['badge2Color'] ?? const Color(0xFFF59E0B) // Default orange for second badge mostly
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  pageData['badge2Text'],
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _bgColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildTopBar(),
+            
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() => _currentPage = index);
+                },
+                itemCount: _pages.length,
+                itemBuilder: (context, index) {
+                  final data = _pages[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Spacer(flex: 2),
+                        
+                        _buildGraphic(data),
+                        
+                        const Spacer(flex: 2),
+                        
+                        // Step Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _brandGreen.withOpacity(0.1),
+                            border: Border.all(color: _brandGreen.withOpacity(0.3)),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.auto_awesome, color: _brandGreen, size: 14),
+                              const SizedBox(width: 8),
+                              Text(
+                                data['stepBadge'],
+                                style: GoogleFonts.inter(
+                                  color: _brandGreen,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Main Title
+                        Text.rich(
+                          TextSpan(
+                            text: data['title1'],
+                            style: GoogleFonts.outfit(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              height: 1.1,
+                              letterSpacing: -1,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: data['titleHighlight'],
+                                style: TextStyle(color: _brandGreen),
+                              ),
+                              TextSpan(
+                                text: data['title2'],
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ]
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Subtitle
+                        Text(
+                          data['subtitle'],
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                            height: 1.5,
+                          ),
+                        ),
+                        
+                        const Spacer(flex: 3),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            
+            // Bottom Area (Indicators and Next button)
+            Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _pages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        height: 6,
+                        width: _currentPage == index ? 24 : 6,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index ? _brandGreen : Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  GestureDetector(
+                    onTap: _nextPage,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: _brandGreen,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _brandGreen.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_currentPage == 2) ...[
+                            const Icon(Icons.rocket_launch, color: Color(0xFF041510), size: 20),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            _currentPage == 2 ? 'Get Started' : 'Next',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF041510),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (_currentPage < 2) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward, color: Color(0xFF041510), size: 20),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
