@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -13,6 +13,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
+  StreamSubscription<AuthState>? _authSubscription;
   
   bool _isLoadingGoogle = false;
   bool _isLoadingEmail = false;
@@ -20,7 +21,23 @@ class _AuthScreenState extends State<AuthScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final session = data.session;
+      if (session != null && mounted) {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/search');
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _authSubscription?.cancel();
     _emailController.dispose();
     super.dispose();
   }
@@ -32,36 +49,16 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      const webClientId = '660487613110-fvss1qqdpj2du82cctgjara7a64sfc6r.apps.googleusercontent.com';
-      
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: webClientId,
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'catalogcalculator://login-callback/',
       );
-
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        // User canceled the sign-in
-        throw Exception('Sign in canceled');
-      }
-
-      final googleAuth = await googleUser.authentication;
-      final accessToken = googleAuth.accessToken;
-      final idToken = googleAuth.idToken;
-
-      if (accessToken == null || idToken == null) {
-        throw Exception('Failed to get Google credentials');
-      }
-
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
-      );
-      
     } catch (error) {
-      setState(() {
-        _errorMessage = error.toString().replaceAll('Exception: ', '');
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = error.toString().replaceAll('Exception: ', '');
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
