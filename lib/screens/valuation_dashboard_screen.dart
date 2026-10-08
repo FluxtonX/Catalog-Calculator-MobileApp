@@ -233,12 +233,27 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header (Back button)
+          // Header (Back button and Logout)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
-              onPressed: () => context.pop(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                  onPressed: () => context.pop(),
+                ),
+                if (Supabase.instance.client.auth.currentSession != null)
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.redAccent, size: 22),
+                    onPressed: () async {
+                      await Supabase.instance.client.auth.signOut();
+                      if (context.mounted) {
+                        context.go('/search');
+                      }
+                    },
+                  ),
+              ],
             ),
           ),
           
@@ -389,9 +404,10 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
           ),
 
           const SizedBox(height: 24),
-
-          // Detailed Stats Preview (Blurred / Locked)
-          Padding(
+          
+          if (Supabase.instance.client.auth.currentSession == null)
+            // Detailed Stats Preview (Blurred / Locked)
+            Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
@@ -461,7 +477,60 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                 ),
               ),
             ),
-          ),
+          )
+          else
+            // Unlocked Detailed Analytics
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Premium Analytics Unlocked',
+                    style: GoogleFonts.outfit(
+                      color: const Color(0xFF10b981),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Streaming Revenue', style: GoogleFonts.inter(color: Colors.white70)),
+                            Text(_formatCurrency(_monthlyRevenue * 0.7), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const Divider(color: Colors.white24, height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Publishing/Sync', style: GoogleFonts.inter(color: Colors.white70)),
+                            Text(_formatCurrency(_monthlyRevenue * 0.3), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const Divider(color: Colors.white24, height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Projected Growth (YoY)', style: GoogleFonts.inter(color: Colors.white70)),
+                            Text('+14.2%', style: GoogleFonts.inter(color: const Color(0xFF10b981), fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           
           const SizedBox(height: 40),
         ],

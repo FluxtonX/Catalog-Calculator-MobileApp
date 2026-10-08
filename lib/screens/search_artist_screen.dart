@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchArtistScreen extends StatefulWidget {
   const SearchArtistScreen({super.key});
@@ -960,8 +962,16 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           ),
           const SizedBox(height: 20),
           GestureDetector(
-            onTap: () {
-              context.push('/login');
+            onTap: () async {
+              await Supabase.instance.client.auth.signOut();
+              try { await GoogleSignIn().signOut(); } catch(e) {}
+              
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('last_search_query', _searchController.text);
+              await prefs.setString('last_search_platform', _platforms.keys.firstWhere((k) => _platforms[k] == true, orElse: () => 'spotify'));
+              if (mounted) {
+                context.push('/login');
+              }
             },
             child: Container(
               width: double.infinity,
@@ -993,36 +1003,49 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           
           const SizedBox(height: 16),
           
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFC29C5B), Color(0xFFA27A3F)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFC29C5B).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                )
-              ]
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Sell Your Catalog Now',
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+          GestureDetector(
+            onTap: () async {
+              await Supabase.instance.client.auth.signOut();
+              try { await GoogleSignIn().signOut(); } catch(e) {}
+              
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('last_search_query', _searchController.text);
+              await prefs.setString('last_search_platform', _platforms.keys.firstWhere((k) => _platforms[k] == true, orElse: () => 'spotify'));
+              if (mounted) {
+                context.push('/login');
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFC29C5B), Color(0xFFA27A3F)],
                 ),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-              ],
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFC29C5B).withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  )
+                ]
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sell Your Catalog Now',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                ],
+              ),
             ),
           )
         ],

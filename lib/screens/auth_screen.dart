@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -23,13 +25,18 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   void initState() {
     super.initState();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       final session = data.session;
       if (session != null && mounted) {
-        if (context.canPop()) {
-          context.pop();
+        final prefs = await SharedPreferences.getInstance();
+        final lastQuery = prefs.getString('last_search_query') ?? '';
+        final lastPlatform = prefs.getString('last_search_platform') ?? 'spotify';
+        
+        if (lastQuery.isNotEmpty) {
+          final encodedQuery = Uri.encodeComponent(lastQuery);
+          if (mounted) context.go('/dashboard/$lastPlatform/$encodedQuery');
         } else {
-          context.go('/search');
+          if (mounted) context.go('/search');
         }
       }
     });
@@ -49,10 +56,32 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'catalogcalculator://login-callback/',
+      // 1. Initialize native Google Sign In
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com',
       );
+      
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // User canceled login
+        return;
+      }
+      
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+      
+      if (accessToken == null || idToken == null) {
+        throw 'No Auth Token found.';
+      }
+      
+      // 2. Sign in to Supabase using the native tokens
+      await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+      
     } catch (error) {
       if (mounted) {
         setState(() {

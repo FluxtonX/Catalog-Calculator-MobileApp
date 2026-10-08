@@ -9,6 +9,7 @@ import 'screens/search_artist_screen.dart';
 import 'screens/valuation_dashboard_screen.dart';
 
 import 'screens/auth_screen.dart';
+import 'screens/main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +51,13 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const SearchArtistScreen(),
     ),
     GoRoute(
+      path: '/dashboard',
+      builder: (context, state) => const ValuationDashboardScreen(
+        platform: 'spotify',
+        query: '',
+      ),
+    ),
+    GoRoute(
       path: '/dashboard/:platform/:query',
       builder: (context, state) => ValuationDashboardScreen(
         platform: state.pathParameters['platform'] ?? 'spotify',
@@ -59,10 +67,6 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const AuthScreen(),
-    ),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const PlaceholderScreen(title: 'Dashboard'),
     ),
   ],
 );
