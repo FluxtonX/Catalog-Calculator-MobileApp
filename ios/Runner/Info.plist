@@ -5,6 +5,8 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<!-- Google Sign-in Section -->
+	<key>GIDClientID</key>
+	<string>660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -13,6 +15,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a</string>
+				<string>catalogcalculator</string>
 			</array>
 		</dict>
 	</array>

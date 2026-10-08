@@ -1,4 +1,4 @@
-package com.catalogcalculator.catalog_calculator_flutter
+package com.catalogcalculator.app
 
 import io.flutter.embedding.android.FlutterActivity
 
