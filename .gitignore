@@ -46,3 +46,6 @@ app.*.map.json
 
 # Secrets
 .env
+
+# Ignore nested/local copy
+catalog_calculator/
