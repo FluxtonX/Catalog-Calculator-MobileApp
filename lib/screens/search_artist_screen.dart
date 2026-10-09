@@ -120,7 +120,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
   String _formatLocalCurrency(double value) {
     final adjustedValue = value * (_royaltyShare / 100);
     final rate = _exchangeRates[_currency] ?? 1.0;
-    final var converted = adjustedValue * rate;
+    final converted = adjustedValue * rate;
     
     final currencySymbols = <String, String>{
       'USD': r'$',
@@ -143,9 +143,9 @@ class _SearchArtistViewState extends State<SearchArtistView>
       'HKD': r'HK$',
     };
     
-    final var symbol = currencySymbols[_currency] ?? r'$';
+    final symbol = currencySymbols[_currency] ?? r'$';
     
-    final var numStr = converted.round().toString().replaceAllMapped(
+    final numStr = converted.round().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (m) => '${m[1]},'
     );
@@ -154,9 +154,9 @@ class _SearchArtistViewState extends State<SearchArtistView>
   }
 
   String _formatQuickRead(double value) {
-    final var adjustedValue = value * (_royaltyShare / 100);
-    final var rate = _exchangeRates[_currency] ?? 1.0;
-    final var converted = adjustedValue * rate;
+    final adjustedValue = value * (_royaltyShare / 100);
+    final rate = _exchangeRates[_currency] ?? 1.0;
+    final converted = adjustedValue * rate;
     
     final currencySymbols = <String, String>{
       'USD': r'$', 'GBP': '£', 'EUR': '€', 'AUD': r'A$', 'CAD': r'C$', 
@@ -478,7 +478,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
                 // Expanding Results Section
                 AnimatedCrossFade(
                   firstChild: const SizedBox(height: 40, width: double.infinity),
-                  secondChild: _buildResultsSection(brandGreen),
+                  secondChild: _buildResultsSection(brandGreen, estimatedValue, artistData),
                   crossFadeState: showResults ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 600),
                   sizeCurve: Curves.easeInOut,
@@ -488,6 +488,8 @@ class _SearchArtistViewState extends State<SearchArtistView>
           ),
         ),
       ),
+    );
+      },
     );
   }
 
@@ -502,7 +504,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
   }
 
   String _getNoteText() {
-    final var count = _platforms.values.where((v) => v).length;
+    final count = _platforms.values.where((v) => v).length;
     if (count == 1) {
       var name = _platforms.keys.firstWhere((k) => _platforms[k] == true);
       name = name == 'apple' ? 'Apple Music' : (name == 'youtube' ? 'YouTube' : 'Spotify');
@@ -511,13 +513,13 @@ class _SearchArtistViewState extends State<SearchArtistView>
     return 'Note: This is your catalog valuation calculated across combined platforms.';
   }
 
-  Widget _buildResultsSection(Color brandGreen) {
-    if (_estimatedValue == null) return const SizedBox.shrink();
+  Widget _buildResultsSection(Color brandGreen, double? estimatedValue, Map<String, dynamic>? artistData) {
+    if (estimatedValue == null) return const SizedBox.shrink();
     
-    final artistName = _artistData?['name'] ?? _searchController.text;
+    final artistName = artistData?['name'] ?? _searchController.text;
     String? imageUrl;
-    if (_artistData != null && _artistData!['images'] != null && (_artistData!['images'] as List).isNotEmpty) {
-      imageUrl = _artistData!['images'][0]['url'];
+    if (artistData != null && artistData['images'] != null && (artistData['images'] as List).isNotEmpty) {
+      imageUrl = artistData['images'][0]['url'];
     }
 
     return Padding(
@@ -563,7 +565,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
           ),
           const SizedBox(height: 12),
           Text(
-            _formatLocalCurrency(_estimatedValue!),
+            _formatLocalCurrency(estimatedValue),
             style: GoogleFonts.outfit(
               color: Colors.white,
               fontSize: 52,
@@ -596,7 +598,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
               ),
               const SizedBox(width: 8),
               Text(
-                _formatQuickRead(_estimatedValue!),
+                _formatQuickRead(estimatedValue),
                 style: GoogleFonts.inter(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 14,
@@ -706,7 +708,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
                                   ),
                                   onChanged: (value) {
                                     if (value.isNotEmpty) {
-                                      final var parsed = double.tryParse(value);
+                                      final parsed = double.tryParse(value);
                                       if (parsed != null) setState(() => _royaltyShare = parsed);
                                     }
                                   },
@@ -897,8 +899,6 @@ class _SearchArtistViewState extends State<SearchArtistView>
           )
         ],
       ),
-    );
-      },
     );
   }
 }

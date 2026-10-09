@@ -87,7 +87,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
     // Rough estimate:
     // 5 streams per listener per month
     // $0.003 per stream
-    final var estimatedMonthlyStreams = listeners * 5;
+    final estimatedMonthlyStreams = listeners * 5;
     _monthlyRevenue = estimatedMonthlyStreams * 0.003;
     
     // Valuation = LTM (12 months) * 3x multiple
