@@ -51,7 +51,17 @@ class ProfileScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildProfileTile(Icons.account_circle, 'Account Details', 'Manage your email and password'),
+                  _buildProfileTile(Icons.notifications, 'Notifications', 'Manage alerts and emails'),
+                  _buildProfileTile(Icons.security, 'Privacy & Security', 'Data controls and permissions'),
+                  _buildProfileTile(Icons.help_outline, 'Help & Support', 'Get help with the app'),
+                ],
+              ),
+            ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -71,6 +81,23 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileTile(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: const Color(0xFF34d399)),
+      ),
+      title: Text(title, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+      onTap: () {},
     );
   }
 }

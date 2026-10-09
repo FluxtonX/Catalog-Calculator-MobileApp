@@ -174,8 +174,24 @@ class SearchArtistCubit extends Cubit<SearchArtistState> {
 
       final estimatedValue = (finalData['midEstimate'] as num).toDouble();
 
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        try {
+          final artistName = (artistData['name'] as String?) ?? query;
+          await Supabase.instance.client.from('user_reports').insert({
+            'user_id': session.user.id,
+            'artist_name': artistName,
+            'platform': platforms.keys.firstWhere((k) => platforms[k] == true, orElse: () => 'spotify'),
+            'estimated_value': estimatedValue,
+          });
+        } catch (e) {
+          print('Failed to save report: $e');
+        }
+      }
+
       emit(SearchArtistLoaded(
         estimatedValue: estimatedValue,
+        valuationData: finalData as Map<String, dynamic>,
         artistData: artistData,
         youtubeData: artistsMap['youtube'],
         appleData: artistsMap['itunes'],

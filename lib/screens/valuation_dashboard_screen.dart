@@ -4,100 +4,62 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ValuationDashboardScreen extends StatefulWidget {
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_cubit.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
+import 'package:catalog_calculator_flutter/core/utils/pdf_generator.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+class ValuationDashboardScreen extends StatelessWidget {
   const ValuationDashboardScreen({
-    required this.platform, required this.query, super.key,
+    required this.platform,
+    required this.query,
+    super.key,
   });
   final String platform;
   final String query;
 
   @override
-  State<ValuationDashboardScreen> createState() => _ValuationDashboardScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => SearchArtistCubit()..searchArtist(
+        query: query,
+        platforms: {
+          platform: true,
+          if (platform == 'spotify') 'youtube': true,
+          if (platform == 'spotify') 'apple': true,
+        },
+      ),
+      child: ValuationDashboardView(platform: platform, query: query),
+    );
+  }
 }
 
-class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
-  bool _isLoading = true;
-  String? _errorMessage;
-  Map<String, dynamic>? _artistData;
+class ValuationDashboardView extends StatefulWidget {
+  const ValuationDashboardView({
+    required this.platform,
+    required this.query,
+    super.key,
+  });
+  final String platform;
+  final String query;
 
-  double _catalogValue = 0;
-  double _monthlyRevenue = 0;
+  @override
+  State<ValuationDashboardView> createState() => _ValuationDashboardViewState();
+}
+
+class _ValuationDashboardViewState extends State<ValuationDashboardView> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _tabController = TabController(length: 4, vsync: this);
   }
 
-  Future<void> _fetchData() async {
-    try {
-      if (widget.platform == 'spotify') {
-        final response = await Supabase.instance.client.functions.invoke(
-          'apify',
-          body: {'query': widget.query},
-        );
-
-        final data = response.data;
-        if (data != null && data is Map<String, dynamic> && data.containsKey('name')) {
-          _artistData = data;
-          _calculateValuation();
-        } else if (data != null && data['artists'] != null) {
-           final artistsData = data['artists'];
-           if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-              _artistData = artistsData['items'][0];
-              _calculateValuation();
-           } else {
-              _errorMessage = 'Artist not found.';
-           }
-        } else {
-          _errorMessage = 'Artist not found.';
-        }
-      } else {
-        // For YouTube and Apple Music, mock or use different endpoints.
-        // We will default to a basic placeholder for now if not Spotify.
-        _errorMessage = 'Platform ${widget.platform} integration coming soon.';
-      }
-    } catch (e) {
-      _errorMessage = 'Failed to load data: $e';
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _calculateValuation() {
-    if (_artistData == null) return;
-    
-    // Very basic placeholder valuation logic based on followers or listeners
-    // In the full web app, this uses deep calculations from src/core/calculations/
-    double listeners = 0;
-    
-    // Try to get monthly listeners if available from Apify
-    if (_artistData!['stats'] != null && _artistData!['stats']['monthlyListeners'] != null) {
-      listeners = double.tryParse(_artistData!['stats']['monthlyListeners'].toString()) ?? 0;
-    } else if (_artistData!['followers'] != null && _artistData!['followers']['total'] != null) {
-       // Fallback to followers if listeners missing
-       listeners = (_artistData!['followers']['total'] as num).toDouble() * 1.5; 
-    }
-    
-    // Rough estimate:
-    // 5 streams per listener per month
-    // $0.003 per stream
-    final estimatedMonthlyStreams = listeners * 5;
-    _monthlyRevenue = estimatedMonthlyStreams * 0.003;
-    
-    // Valuation = LTM (12 months) * 3x multiple
-    _catalogValue = _monthlyRevenue * 12 * 3;
-    
-    // Ensure minimums so UI doesn't look broken
-    if (_catalogValue == 0) {
-      _catalogValue = 150000; // Fake fallback
-      _monthlyRevenue = 4166;
-    }
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   String _formatCurrency(double value) {
@@ -140,11 +102,18 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
           ),
           
           SafeArea(
-            child: _isLoading
-                ? _buildLoadingState()
-                : _errorMessage != null
-                    ? _buildErrorState()
-                    : _buildDashboard(),
+            child: BlocBuilder<SearchArtistCubit, SearchArtistState>(
+              builder: (context, state) {
+                if (state is SearchArtistLoading || state is SearchArtistInitial) {
+                  return _buildLoadingState();
+                } else if (state is SearchArtistError) {
+                  return _buildErrorState(state.message);
+                } else if (state is SearchArtistLoaded) {
+                  return _buildDashboard(state);
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ],
       ),
@@ -179,7 +148,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String error) {
     return Column(
       children: [
         Padding(
@@ -194,25 +163,28 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
         ),
         Expanded(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(color: Colors.redAccent.shade100, fontSize: 16),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => context.pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+                  const SizedBox(height: 16),
+                  Text(
+                    error,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(color: Colors.redAccent.shade100, fontSize: 16),
                   ),
-                  child: const Text('Go Back'),
-                )
-              ],
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => context.pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    ),
+                    child: const Text('Go Back'),
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -220,317 +192,548 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
     );
   }
 
-  Widget _buildDashboard() {
-    final artistName = (_artistData!['name'] as String?) ?? widget.query;
+  Widget _buildDashboard(SearchArtistLoaded state) {
+    final artistData = state.artistData;
+    final valuationData = state.valuationData;
+    final estimatedValue = state.estimatedValue;
+    final youtubeData = state.youtubeData;
+    final appleData = state.appleData;
+    
+    final artistName = (artistData['name'] as String?) ?? widget.query;
     String? imageUrl;
-    if (_artistData!['images'] != null && (_artistData!['images'] as List).isNotEmpty) {
-      imageUrl = _artistData!['images'][0]['url'] as String?;
+    if (artistData['images'] != null && (artistData['images'] as List).isNotEmpty) {
+      imageUrl = ((artistData['images'] as List)[0] as Map)['url'] as String?;
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header (Back button and Logout)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
-                  onPressed: () => context.pop(),
-                ),
-                if (Supabase.instance.client.auth.currentSession != null)
-                  IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.redAccent, size: 22),
-                    onPressed: () async {
-                      await Supabase.instance.client.auth.signOut();
-                      if (context.mounted) {
-                        context.go('/search');
-                      }
-                    },
-                  ),
-              ],
-            ),
-          ),
-          
-          // Artist Header Profile
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 2),
-                    image: imageUrl != null 
-                        ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
-                        : null,
-                  ),
-                  child: imageUrl == null ? const Icon(Icons.person, color: Colors.white54) : null,
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        artistName,
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: widget.platform == 'spotify' 
-                              ? const Color(0xFF10b981).withValues(alpha: 0.1)
-                              : Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${widget.platform.toUpperCase()} CATALOG',
-                          style: GoogleFonts.inter(
-                            color: widget.platform == 'spotify' ? const Color(0xFF10b981) : Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Valuation Cards
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF10b981), Color(0xFF059669)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF10b981).withValues(alpha: 0.3),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  )
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header (Back button, Export, and Logout)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                onPressed: () => context.pop(),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.bar_chart, color: Colors.white, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'EST. CATALOG VALUATION',
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () {
+                  PdfGenerator.generateAndShareValuationReport(
+                    artistName: artistName,
+                    estimatedValue: estimatedValue,
+                    platform: widget.platform,
+                  );
+                },
+                icon: const Icon(Icons.picture_as_pdf, size: 16),
+                label: const Text('Export PDF'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10b981).withValues(alpha: 0.2),
+                  foregroundColor: const Color(0xFF10b981),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              if (Supabase.instance.client.auth.currentSession != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.redAccent, size: 22),
+                  onPressed: () async {
+                    await Supabase.instance.client.auth.signOut();
+                    if (context.mounted) {
+                      context.go('/search');
+                    }
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+        
+        // Artist Header Profile
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 2),
+                  image: imageUrl != null 
+                      ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+                      : null,
+                ),
+                child: imageUrl == null ? const Icon(Icons.person, color: Colors.white54) : null,
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      artistName,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: widget.platform == 'spotify' 
+                            ? const Color(0xFF10b981).withValues(alpha: 0.1)
+                            : Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${widget.platform.toUpperCase()} CATALOG',
                         style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 12,
+                          color: widget.platform == 'spotify' 
+                              ? const Color(0xFF34d399)
+                              : Colors.white70,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _formatCurrency(_catalogValue),
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Est. Monthly Rev',
-                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatCurrency(_monthlyRevenue),
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Market Multiple',
-                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '3.0x',
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          
-          if (Supabase.instance.client.auth.currentSession == null)
-            // Detailed Stats Preview (Blurred / Locked)
-            Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF3b82f6).withValues(alpha: 0.1),
-                        ),
-                        child: const Icon(Icons.lock_outline, color: Color(0xFF60a5fa), size: 32),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Detailed Analytics Locked',
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sign in to view streaming breakdowns, track-level revenue, follower demographics, and historical trends for $artistName.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF94a3b8),
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      GestureDetector(
-                        onTap: () {
-                          context.push('/login');
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            'Log In to View Full Report',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
+                  ],
                 ),
               ),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // TabBar
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: const Color(0xFF10b981),
+          labelColor: const Color(0xFF10b981),
+          unselectedLabelColor: Colors.white54,
+          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
+          tabs: const [
+            Tab(text: 'Overview'),
+            Tab(text: 'Spotify'),
+            Tab(text: 'Apple Music'),
+            Tab(text: 'YouTube'),
+          ],
+        ),
+        
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOverviewTab(estimatedValue, valuationData),
+              _buildSpotifyTab(artistData, valuationData),
+              _buildAppleTab(appleData, valuationData),
+              _buildYouTubeTab(youtubeData, valuationData),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOverviewTab(double estimatedValue, Map<String, dynamic> valuationData) {
+    final streamingRevenue = (valuationData['streamingRevenue'] as num?)?.toDouble() ?? 0.0;
+    final publishingRevenue = (valuationData['publishingRevenue'] as num?)?.toDouble() ?? 0.0;
+    final combinedRevenue = streamingRevenue + publishingRevenue;
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF10b981), Color(0xFF047857)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10b981).withValues(alpha: 0.3),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                )
+              ],
             ),
-          )
-          else
-            // Unlocked Detailed Analytics
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Premium Analytics Unlocked',
-                    style: GoogleFonts.outfit(
-                      color: const Color(0xFF10b981),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.bar_chart, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'EST. CATALOG VALUATION',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _formatCurrency(estimatedValue),
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Column(
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Streaming Revenue', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text(_formatCurrency(_monthlyRevenue * 0.7), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
-                          ],
+                        Text(
+                          'Est. Monthly Rev',
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
                         ),
-                        const Divider(color: Colors.white24, height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Publishing/Sync', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text(_formatCurrency(_monthlyRevenue * 0.3), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const Divider(color: Colors.white24, height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Projected Growth (YoY)', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text('+14.2%', style: GoogleFonts.inter(color: const Color(0xFF10b981), fontWeight: FontWeight.bold)),
-                          ],
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatCurrency(combinedRevenue / 12),
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Market Multiple',
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '3.0x',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          Text(
+            'Premium Analytics Unlocked',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF10b981),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Streaming Revenue', style: GoogleFonts.inter(color: Colors.white70)),
+                    Text(_formatCurrency(streamingRevenue), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const Divider(color: Colors.white24, height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Publishing/Sync', style: GoogleFonts.inter(color: Colors.white70)),
+                    Text(_formatCurrency(publishingRevenue), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const Divider(color: Colors.white24, height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Projected Growth (YoY)', style: GoogleFonts.inter(color: Colors.white70)),
+                    Text('+14.2%', style: GoogleFonts.inter(color: const Color(0xFF10b981), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpotifyTab(Map<String, dynamic> spotifyData, Map<String, dynamic> valuationData) {
+    Map<String, dynamic>? followersMap;
+    if (spotifyData['followers'] is Map) {
+      followersMap = spotifyData['followers'] as Map<String, dynamic>?;
+    }
+    final followers = (followersMap?['total'] as num?)?.toInt() ?? 0;
+    final popularity = (spotifyData['popularity'] as num?)?.toInt() ?? 0;
+    
+    Map<String, dynamic>? platformValuation;
+    final valData = valuationData['breakdown']?['spotify'] ?? valuationData['breakdown']?['apify'];
+    if (valData is Map) {
+      platformValuation = valData as Map<String, dynamic>?;
+    }
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (platformValuation != null)
+            _buildPlatformValuationCard(
+              title: 'Spotify CFA Valuation',
+              color: const Color(0xFF1DB954),
+              valuation: platformValuation,
+            ),
+          const SizedBox(height: 24),
+          _buildStatCard(
+            title: 'Spotify Catalog Stats',
+            icon: Icons.graphic_eq,
+            color: const Color(0xFF1DB954),
+            stats: {
+              'Followers': _formatNumber(followers.toDouble()),
+              'Popularity': '$popularity/100',
+              'Est. Reach': _formatNumber(followers * 1.5),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppleTab(Map<String, dynamic>? appleData, Map<String, dynamic> valuationData) {
+    if (appleData == null) {
+      return Center(
+        child: Text('Apple Music data not found.', style: GoogleFonts.inter(color: Colors.white70)),
+      );
+    }
+    
+    Map<String, dynamic>? platformValuation;
+    final valData = valuationData['breakdown']?['itunes'] ?? valuationData['breakdown']?['apple'];
+    if (valData is Map) {
+      platformValuation = valData as Map<String, dynamic>?;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (platformValuation != null)
+            _buildPlatformValuationCard(
+              title: 'Apple Music CFA Valuation',
+              color: const Color(0xFFFA243C),
+              valuation: platformValuation,
+            ),
+          const SizedBox(height: 24),
+          _buildStatCard(
+            title: 'Apple Music Catalog Stats',
+            icon: Icons.music_note,
+            color: const Color(0xFFFA243C),
+            stats: {
+              'Status': 'Available',
+              'ID': appleData['id']?.toString() ?? 'N/A',
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildYouTubeTab(Map<String, dynamic>? youtubeData, Map<String, dynamic> valuationData) {
+    if (youtubeData == null) {
+      return Center(
+        child: Text('YouTube data not requested.', style: GoogleFonts.inter(color: Colors.white70)),
+      );
+    }
+    
+    int subs = 0;
+    int views = 0;
+    int videos = 0;
+    
+    if (youtubeData['channels'] != null && (youtubeData['channels'] as List).isNotEmpty) {
+      final stats = ((youtubeData['channels'] as List)[0] as Map)['statistics'] as Map?;
+      if (stats != null) {
+        subs = int.tryParse(stats['subscriberCount']?.toString() ?? '0') ?? 0;
+        views = int.tryParse(stats['viewCount']?.toString() ?? '0') ?? 0;
+        videos = int.tryParse(stats['videoCount']?.toString() ?? '0') ?? 0;
+      }
+    }
+
+    Map<String, dynamic>? platformValuation;
+    final valData = valuationData['breakdown']?['youtube'];
+    if (valData is Map) {
+      platformValuation = valData as Map<String, dynamic>?;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (platformValuation != null)
+            _buildPlatformValuationCard(
+              title: 'YouTube CFA Valuation',
+              color: const Color(0xFFFF0000),
+              valuation: platformValuation,
+            ),
+          const SizedBox(height: 24),
+          _buildStatCard(
+            title: 'YouTube Channel Stats',
+            icon: Icons.smart_display,
+            color: const Color(0xFFFF0000),
+            stats: {
+              'Subscribers': _formatNumber(subs.toDouble()),
+              'Total Views': _formatNumber(views.toDouble()),
+              'Videos': _formatNumber(videos.toDouble()),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlatformValuationCard({required String title, required Color color, required Map<String, dynamic> valuation}) {
+    final midEstimate = (valuation['midEstimate'] as num?)?.toDouble() ?? 0;
+    final annualRevenue = (valuation['totalAnnualRevenue'] as num?)?.toDouble() ?? 0;
+    final averageAge = (valuation['averageDollarAge'] as num?)?.toDouble() ?? 0;
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              color: color,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _formatCurrency(midEstimate),
+            style: GoogleFonts.outfit(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Est. Annual Rev', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 4),
+                  Text(_formatCurrency(annualRevenue), style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 ],
               ),
-            ),
-          
-          const SizedBox(height: 40),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('Avg. Catalog Age', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 4),
+                  Text('${averageAge.toStringAsFixed(1)} Years', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatNumber(double num) {
+    if (num >= 1000000) return '${(num / 1000000).toStringAsFixed(1)}M';
+    if (num >= 1000) return '${(num / 1000).toStringAsFixed(1)}K';
+    return num.toStringAsFixed(0);
+  }
+
+  Widget _buildStatCard({required String title, required IconData icon, required Color color, required Map<String, String> stats}) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(width: 12),
+              Text(title, style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: stats.entries.map((e) => Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(e.key, style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 4),
+                  Text(e.value, style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            )).toList(),
+          ),
         ],
       ),
     );

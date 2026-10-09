@@ -519,7 +519,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
     final artistName = artistData?['name'] ?? _searchController.text;
     String? imageUrl;
     if (artistData != null && artistData['images'] != null && (artistData['images'] as List).isNotEmpty) {
-      imageUrl = artistData['images'][0]['url'];
+      imageUrl = artistData['images'][0]['url'] as String?;
     }
 
     return Padding(
@@ -545,7 +545,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
             ),
             
           Text(
-            artistName,
+            artistName as String,
             style: GoogleFonts.outfit(
               color: Colors.white,
               fontSize: 28,

@@ -14,18 +14,20 @@ class SearchArtistLoading extends SearchArtistState {}
 class SearchArtistLoaded extends SearchArtistState {
   const SearchArtistLoaded({
     required this.estimatedValue,
+    required this.valuationData,
     required this.artistData,
     this.youtubeData,
     this.appleData,
   });
 
   final double estimatedValue;
+  final Map<String, dynamic> valuationData;
   final Map<String, dynamic> artistData;
   final Map<String, dynamic>? youtubeData;
   final Map<String, dynamic>? appleData;
 
   @override
-  List<Object?> get props => [estimatedValue, artistData, youtubeData, appleData];
+  List<Object?> get props => [estimatedValue, valuationData, artistData, youtubeData, appleData];
 }
 
 class SearchArtistError extends SearchArtistState {

@@ -46,6 +46,9 @@ dependencies:
   equatable: ^3.0.0
 
   bloc: any
+  pdf: ^3.13.1
+  printing: ^5.15.1
+  path_provider: ^2.1.6
 dev_dependencies:
   flutter_test:
     sdk: flutter

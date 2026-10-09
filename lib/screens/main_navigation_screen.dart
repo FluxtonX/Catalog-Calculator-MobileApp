@@ -1,4 +1,4 @@
-import 'package:catalog_calculator_flutter/screens/history_screen.dart';
+import 'package:catalog_calculator_flutter/features/dashboard/view/dashboard_page.dart';
 import 'package:catalog_calculator_flutter/screens/profile_screen.dart';
 import 'package:catalog_calculator_flutter/screens/search_artist_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +15,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const SearchArtistScreen(),
-    const HistoryScreen(),
+    const DashboardPage(),
     const ProfileScreen(),
   ];
 
