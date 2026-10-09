@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'dart:math';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -17,7 +15,9 @@ class SearchArtistScreen extends StatefulWidget {
 class _SearchArtistScreenState extends State<SearchArtistScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _royaltyController = TextEditingController(text: '100');
+  final TextEditingController _royaltyController = TextEditingController(
+    text: '100',
+  );
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -83,17 +83,19 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     if (str == null) return 0;
     if (str is num) return str.toDouble();
     final upper = str.toString().toUpperCase();
-    if (upper.contains("B")) return double.parse(upper.replaceAll("B", "")) * 1e9;
-    if (upper.contains("M")) return double.parse(upper.replaceAll("M", "")) * 1e6;
-    if (upper.contains("K")) return double.parse(upper.replaceAll("K", "")) * 1e3;
+    if (upper.contains("B"))
+      return double.parse(upper.replaceAll("B", "")) * 1e9;
+    if (upper.contains("M"))
+      return double.parse(upper.replaceAll("M", "")) * 1e6;
+    if (upper.contains("K"))
+      return double.parse(upper.replaceAll("K", "")) * 1e3;
     return double.tryParse(upper.replaceAll(RegExp(r','), '')) ?? 0;
   }
-
 
   Future<void> _handleCalculate([String? overrideQuery]) async {
     final query = (overrideQuery ?? _searchController.text).trim();
     if (query.isEmpty) return;
-    
+
     if (overrideQuery != null && _searchController.text != overrideQuery) {
       _searchController.text = overrideQuery;
     }
@@ -116,10 +118,10 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       if (_platforms['spotify'] == true) platformsToFetch.add('apify');
       if (_platforms['apple'] == true) platformsToFetch.add('itunes');
       if (_platforms['youtube'] == true) platformsToFetch.add('youtube');
-      
+
       // CRITICAL - The Proxy Rule
       if (_platforms['apple'] == true && _platforms['spotify'] != true) {
-        platformsToFetch.add('apify_proxy'); 
+        platformsToFetch.add('apify_proxy');
       }
 
       Map<String, Map<String, dynamic>> artistsMap = {};
@@ -137,7 +139,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             body: requestBody,
           );
 
-          if (fetchKey == 'itunes' && (response.data == null || (response.data is Map && response.data['error'] != null))) {
+          if (fetchKey == 'itunes' &&
+              (response.data == null ||
+                  (response.data is Map && response.data['error'] != null))) {
             requestBody['useMusicKit'] = false;
             response = await Supabase.instance.client.functions.invoke(
               functionName,
@@ -146,34 +150,62 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           }
 
           var data = response.data;
-          
-          if (fetchKey == 'youtube' && (data == null || data['error'] != null || (data is Map && !data.containsKey('channels')))) {
+
+          if (fetchKey == 'youtube' &&
+              (data == null ||
+                  data['error'] != null ||
+                  (data is Map && !data.containsKey('channels')))) {
             try {
               // Client-side fallback identical to web app's api.js
               String apiKey = 'AIzaSyBvlzgXH5IKpLZFckQu-_KXv_rdMELAdNw';
               var httpClient = HttpClient();
-              var req1 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${Uri.encodeComponent(query)}&maxResults=1&key=$apiKey'));
+              var req1 = await httpClient.getUrl(
+                Uri.parse(
+                  'https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${Uri.encodeComponent(query)}&maxResults=1&key=$apiKey',
+                ),
+              );
               var res1 = await req1.close();
               var body1 = await res1.transform(utf8.decoder).join();
               var json1 = jsonDecode(body1);
-              
-              if (json1['items'] != null && (json1['items'] as List).isNotEmpty) {
-                String channelId = json1['items'][0]['id']['channelId'] ?? json1['items'][0]['id'];
-                
-                var req2 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=$channelId&key=$apiKey'));
+
+              if (json1['items'] != null &&
+                  (json1['items'] as List).isNotEmpty) {
+                String channelId =
+                    json1['items'][0]['id']['channelId'] ??
+                    json1['items'][0]['id'];
+
+                var req2 = await httpClient.getUrl(
+                  Uri.parse(
+                    'https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=$channelId&key=$apiKey',
+                  ),
+                );
                 var res2 = await req2.close();
                 var body2 = await res2.transform(utf8.decoder).join();
                 var json2 = jsonDecode(body2);
-                
-                if (json2['items'] != null && (json2['items'] as List).isNotEmpty) {
+
+                if (json2['items'] != null &&
+                    (json2['items'] as List).isNotEmpty) {
                   var item = json2['items'][0];
                   data = {
                     'platform': 'youtube',
                     'title': item['snippet']['title'],
                     'channelTitle': item['snippet']['title'],
-                    'subscribers': int.tryParse(item['statistics']['subscriberCount']?.toString() ?? '0') ?? 0,
-                    'totalViews': int.tryParse(item['statistics']['viewCount']?.toString() ?? '0') ?? 0,
-                    'tracksCount': int.tryParse(item['statistics']['videoCount']?.toString() ?? '0') ?? 0,
+                    'subscribers':
+                        int.tryParse(
+                          item['statistics']['subscriberCount']?.toString() ??
+                              '0',
+                        ) ??
+                        0,
+                    'totalViews':
+                        int.tryParse(
+                          item['statistics']['viewCount']?.toString() ?? '0',
+                        ) ??
+                        0,
+                    'tracksCount':
+                        int.tryParse(
+                          item['statistics']['videoCount']?.toString() ?? '0',
+                        ) ??
+                        0,
                   };
                 }
               }
@@ -182,64 +214,89 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             }
           } else if (fetchKey == 'youtube' && data != null && data is Map) {
             String? channelId;
-            if (data['channels'] != null && (data['channels'] as List).isNotEmpty) {
+            if (data['channels'] != null &&
+                (data['channels'] as List).isNotEmpty) {
               channelId = data['channels'][0]['id'];
             } else if (data['channel'] != null) {
               channelId = data['channel']['id'];
             }
-            
+
             if (channelId != null) {
-              final detailsResponse = await Supabase.instance.client.functions.invoke(
-                'youtube',
-                body: {'query': query, 'channelId': channelId},
-              );
+              final detailsResponse = await Supabase.instance.client.functions
+                  .invoke(
+                    'youtube',
+                    body: {'query': query, 'channelId': channelId},
+                  );
               data = detailsResponse.data;
             }
           }
 
           Map<String, dynamic>? artistData;
-          if (data != null && data is Map<String, dynamic> && (data.containsKey('name') || data.containsKey('title') || data.containsKey('channelTitle') || data.containsKey('platform'))) {
+          if (data != null &&
+              data is Map<String, dynamic> &&
+              (data.containsKey('name') ||
+                  data.containsKey('title') ||
+                  data.containsKey('channelTitle') ||
+                  data.containsKey('platform'))) {
             artistData = data;
           } else if (data != null && data['artists'] != null) {
-             final artistsData = data['artists'];
-             if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-                artistData = artistsData['items'][0];
-             }
-          } else if (data != null && data['results'] != null && (data['results'] as List).isNotEmpty) {
-             artistData = data['results'][0];
+            final artistsData = data['artists'];
+            if (artistsData is Map &&
+                artistsData['items'] != null &&
+                (artistsData['items'] as List).isNotEmpty) {
+              artistData = artistsData['items'][0];
+            }
+          } else if (data != null &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            artistData = data['results'][0];
           } else if (data != null && data is Map<String, dynamic>) {
-             // Fallback: just use the raw map if it seems like a valid object
-             artistData = data;
+            // Fallback: just use the raw map if it seems like a valid object
+            artistData = data;
           }
 
           if (artistData != null) {
-            String mapKey = fetchKey == 'apify' ? 'spotify' : (fetchKey == 'apify_proxy' ? 'spotify_proxy' : fetchKey);
-            artistsMap[mapKey] = Map<String, dynamic>.from(artistData)..['platform'] = mapKey;
+            String mapKey = fetchKey == 'apify'
+                ? 'spotify'
+                : (fetchKey == 'apify_proxy' ? 'spotify_proxy' : fetchKey);
+            artistsMap[mapKey] = Map<String, dynamic>.from(artistData)
+              ..['platform'] = mapKey;
           }
         } catch (e) {
           print('Failed to fetch $fetchKey: $e');
           if (fetchKey == 'itunes') {
             try {
-              final fallbackResponse = await Supabase.instance.client.functions.invoke(
-                'itunes',
-                body: {'query': query, 'useMusicKit': false},
-              );
+              final fallbackResponse = await Supabase.instance.client.functions
+                  .invoke(
+                    'itunes',
+                    body: {'query': query, 'useMusicKit': false},
+                  );
               final data = fallbackResponse.data;
               Map<String, dynamic>? artistData;
-              if (data != null && data is Map<String, dynamic> && (data.containsKey('name') || data.containsKey('title') || data.containsKey('channelTitle') || data.containsKey('platform'))) {
+              if (data != null &&
+                  data is Map<String, dynamic> &&
+                  (data.containsKey('name') ||
+                      data.containsKey('title') ||
+                      data.containsKey('channelTitle') ||
+                      data.containsKey('platform'))) {
                 artistData = data;
               } else if (data != null && data['artists'] != null) {
-                 final artistsData = data['artists'];
-                 if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-                    artistData = artistsData['items'][0];
-                 }
-              } else if (data != null && data['results'] != null && (data['results'] as List).isNotEmpty) {
-                 artistData = data['results'][0];
+                final artistsData = data['artists'];
+                if (artistsData is Map &&
+                    artistsData['items'] != null &&
+                    (artistsData['items'] as List).isNotEmpty) {
+                  artistData = artistsData['items'][0];
+                }
+              } else if (data != null &&
+                  data['results'] != null &&
+                  (data['results'] as List).isNotEmpty) {
+                artistData = data['results'][0];
               } else if (data != null && data is Map<String, dynamic>) {
-                 artistData = data;
+                artistData = data;
               }
               if (artistData != null) {
-                artistsMap['itunes'] = Map<String, dynamic>.from(artistData)..['platform'] = 'itunes';
+                artistsMap['itunes'] = Map<String, dynamic>.from(artistData)
+                  ..['platform'] = 'itunes';
               }
             } catch (fallbackError) {
               print('Fallback failed for itunes: $fallbackError');
@@ -251,10 +308,17 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       await Future.wait(futures);
 
       if (artistsMap.isEmpty) {
-        throw Exception("Could not find catalog data for this artist on any selected platform.");
+        throw Exception(
+          "Could not find catalog data for this artist on any selected platform.",
+        );
       }
-      
-      _artistData = artistsMap['spotify'] ?? artistsMap['spotify_proxy'] ?? artistsMap['itunes'] ?? artistsMap['youtube'] ?? artistsMap.values.first;
+
+      _artistData =
+          artistsMap['spotify'] ??
+          artistsMap['spotify_proxy'] ??
+          artistsMap['itunes'] ??
+          artistsMap['youtube'] ??
+          artistsMap.values.first;
 
       final calculateResponse = await Supabase.instance.client.functions.invoke(
         'calculate-valuation',
@@ -266,9 +330,13 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
         throw Exception("Valuation engine returned invalid data.");
       }
 
-      setState(() => _estimatedValue = (finalData['midEstimate'] as num).toDouble());
+      setState(
+        () => _estimatedValue = (finalData['midEstimate'] as num).toDouble(),
+      );
     } catch (e) {
-      setState(() => _errorMessage = e.toString().replaceAll('Exception: ', ''));
+      setState(
+        () => _errorMessage = e.toString().replaceAll('Exception: ', ''),
+      );
     } finally {
       setState(() => _isSearching = false);
     }
@@ -278,7 +346,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     double adjustedValue = value * (_royaltyShare / 100);
     double rate = _exchangeRates[_currency] ?? 1.0;
     double converted = adjustedValue * rate;
-    
+
     final Map<String, String> _currencySymbols = {
       'USD': '\$',
       'GBP': '£',
@@ -299,14 +367,14 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       'SGD': 'S\$',
       'HKD': 'HK\$',
     };
-    
+
     String symbol = _currencySymbols[_currency] ?? '\$';
-    
+
     String numStr = converted.round().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},'
+      (Match m) => '${m[1]},',
     );
-    
+
     return '$symbol$numStr';
   }
 
@@ -314,15 +382,29 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     double adjustedValue = value * (_royaltyShare / 100);
     double rate = _exchangeRates[_currency] ?? 1.0;
     double converted = adjustedValue * rate;
-    
+
     final Map<String, String> _currencySymbols = {
-      'USD': '\$', 'GBP': '£', 'EUR': '€', 'AUD': 'A\$', 'CAD': 'C\$', 
-      'CHF': 'CHF', 'JPY': '¥', 'CNY': '¥', 'INR': '₹', 'ZAR': 'R', 
-      'BRL': 'R\$', 'MXN': '\$', 'NZD': 'NZ\$', 'SEK': 'kr', 
-      'NOK': 'kr', 'DKK': 'kr', 'SGD': 'S\$', 'HKD': 'HK\$',
+      'USD': '\$',
+      'GBP': '£',
+      'EUR': '€',
+      'AUD': 'A\$',
+      'CAD': 'C\$',
+      'CHF': 'CHF',
+      'JPY': '¥',
+      'CNY': '¥',
+      'INR': '₹',
+      'ZAR': 'R',
+      'BRL': 'R\$',
+      'MXN': '\$',
+      'NZD': 'NZ\$',
+      'SEK': 'kr',
+      'NOK': 'kr',
+      'DKK': 'kr',
+      'SGD': 'S\$',
+      'HKD': 'HK\$',
     };
     String symbol = _currencySymbols[_currency] ?? '\$';
-    
+
     if (converted >= 1000000) {
       return '≈ $symbol${(converted / 1000000).toStringAsFixed(2)} million';
     } else if (converted >= 1000) {
@@ -331,7 +413,12 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     return '≈ $symbol${converted.toStringAsFixed(0)}';
   }
 
-  Widget _buildPlatformOption(String id, String name, IconData icon, Color activeColor) {
+  Widget _buildPlatformOption(
+    String id,
+    String name,
+    IconData icon,
+    Color activeColor,
+  ) {
     final isSelected = _platforms[id] ?? false;
     return GestureDetector(
       onTap: () => setState(() => _platforms[id] = !isSelected),
@@ -340,9 +427,13 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.08) : Colors.transparent,
+          color: isSelected
+              ? activeColor.withOpacity(0.08)
+              : Colors.transparent,
           border: Border.all(
-            color: isSelected ? activeColor.withOpacity(0.5) : Colors.white.withOpacity(0.15),
+            color: isSelected
+                ? activeColor.withOpacity(0.5)
+                : Colors.white.withOpacity(0.15),
           ),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -356,12 +447,20 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 color: isSelected ? activeColor : Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: isSelected 
-                  ? const Icon(Icons.check, size: 16, color: Colors.black) // Dark icon inside bright box
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      size: 16,
+                      color: Colors.black,
+                    ) // Dark icon inside bright box
                   : null,
             ),
             const SizedBox(width: 16),
-            Icon(icon, color: isSelected ? activeColor : Colors.white, size: 22),
+            Icon(
+              icon,
+              color: isSelected ? activeColor : Colors.white,
+              size: 22,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -383,11 +482,11 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
   Widget build(BuildContext context) {
     final bool showResults = _estimatedValue != null;
     final bool hasInput = _searchController.text.trim().isNotEmpty;
-    
+
     // Very dark emerald background color matching the image
     const Color bgColor = Color(0xFF041510);
     const Color brandGreen = Color(0xFF34d399); // Bright green
-    
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -398,7 +497,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 16),
-                
+
                 // Top Logo
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -425,12 +524,15 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: brandGreen.withOpacity(0.1),
                     border: Border.all(color: brandGreen.withOpacity(0.3)),
@@ -453,9 +555,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Hero Text
                 Text.rich(
                   TextSpan(
@@ -470,19 +572,23 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     children: const [
                       TextSpan(
                         text: 'Catalog',
-                        style: TextStyle(color: Color(0xFF34d399)), // Inherits w900 and font family
+                        style: TextStyle(
+                          color: Color(0xFF34d399),
+                        ), // Inherits w900 and font family
                       ),
                       TextSpan(
                         text: ' Worth?',
-                        style: TextStyle(color: Colors.white), // Inherits w900 and font family
+                        style: TextStyle(
+                          color: Colors.white,
+                        ), // Inherits w900 and font family
                       ),
-                    ]
+                    ],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
@@ -495,16 +601,18 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Main Container
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF081F17), // Slightly lighter green box
+                      color: const Color(
+                        0xFF081F17,
+                      ), // Slightly lighter green box
                       border: Border.all(color: brandGreen.withOpacity(0.15)),
                       borderRadius: BorderRadius.circular(32),
                     ),
@@ -515,30 +623,43 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                         Container(
                           decoration: BoxDecoration(
                             color: bgColor,
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.08),
+                            ),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: TextField(
                             controller: _searchController,
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
                             textInputAction: TextInputAction.done,
                             onChanged: (text) => setState(() {}),
                             decoration: InputDecoration(
                               hintText: 'Search artist...',
-                              hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.3)),
+                              hintStyle: GoogleFonts.inter(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.all(18.0),
-                                child: Icon(Icons.search, color: Colors.white54, size: 22),
+                                child: Icon(
+                                  Icons.search,
+                                  color: Colors.white54,
+                                  size: 22,
+                                ),
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 20,
+                              ),
                             ),
                             onSubmitted: (_) => _handleCalculate(),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 32),
-                        
+
                         Text(
                           'DATA SOURCES',
                           style: GoogleFonts.inter(
@@ -549,15 +670,30 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Platform checkboxes exactly like the image
-                        _buildPlatformOption('spotify', 'Spotify', Icons.music_note, brandGreen),
+                        _buildPlatformOption(
+                          'spotify',
+                          'Spotify',
+                          Icons.music_note,
+                          brandGreen,
+                        ),
                         // Youtube Middle, Apple Third
-                        _buildPlatformOption('youtube', 'YouTube', Icons.play_circle_filled, const Color(0xFFef4444)),
-                        _buildPlatformOption('apple', 'Apple Music', Icons.apple, Colors.white),
+                        _buildPlatformOption(
+                          'youtube',
+                          'YouTube',
+                          Icons.play_circle_filled,
+                          const Color(0xFFef4444),
+                        ),
+                        _buildPlatformOption(
+                          'apple',
+                          'Apple Music',
+                          Icons.apple,
+                          Colors.white,
+                        ),
 
                         const SizedBox(height: 24),
-                        
+
                         // Footer text
                         Text(
                           'Estimates are indicative and based on publicly available top-10 streaming data.',
@@ -570,15 +706,19 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                         ),
 
                         const SizedBox(height: 24),
-                        
+
                         // Calculate Button
                         GestureDetector(
-                          onTap: (hasInput && !_isSearching) ? _handleCalculate : null,
+                          onTap: (hasInput && !_isSearching)
+                              ? _handleCalculate
+                              : null,
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             decoration: BoxDecoration(
-                              color: hasInput ? brandGreen.withOpacity(0.15) : Colors.white.withOpacity(0.03),
+                              color: hasInput
+                                  ? brandGreen.withOpacity(0.15)
+                                  : Colors.white.withOpacity(0.03),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Row(
@@ -586,23 +726,32 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                               children: [
                                 if (_isSearching)
                                   const SizedBox(
-                                    width: 20, height: 20,
+                                    width: 20,
+                                    height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(brandGreen),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        brandGreen,
+                                      ),
                                     ),
                                   )
                                 else
                                   Icon(
-                                    Icons.calculate, 
-                                    color: hasInput ? brandGreen : Colors.white24, 
-                                    size: 20
+                                    Icons.calculate,
+                                    color: hasInput
+                                        ? brandGreen
+                                        : Colors.white24,
+                                    size: 20,
                                   ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  _isSearching ? 'Calculating...' : 'Calculate Valuation',
+                                  _isSearching
+                                      ? 'Calculating...'
+                                      : 'Calculate Valuation',
                                   style: GoogleFonts.inter(
-                                    color: hasInput ? brandGreen : Colors.white24,
+                                    color: hasInput
+                                        ? brandGreen
+                                        : Colors.white24,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -622,15 +771,23 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     child: Text(
                       _errorMessage!,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(color: Colors.red.shade400, fontSize: 14),
+                      style: GoogleFonts.inter(
+                        color: Colors.red.shade400,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
 
                 // Expanding Results Section
                 AnimatedCrossFade(
-                  firstChild: const SizedBox(height: 40, width: double.infinity),
+                  firstChild: const SizedBox(
+                    height: 40,
+                    width: double.infinity,
+                  ),
                   secondChild: _buildResultsSection(brandGreen),
-                  crossFadeState: showResults ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                  crossFadeState: showResults
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 600),
                   sizeCurve: Curves.easeInOut,
                 ),
@@ -647,7 +804,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     if (_platforms['spotify'] == true) selected.add('SPOTIFY');
     if (_platforms['apple'] == true) selected.add('APPLE MUSIC');
     if (_platforms['youtube'] == true) selected.add('YOUTUBE');
-    
+
     if (selected.length == 3) return "ALL PLATFORMS";
     return selected.join(" & ");
   }
@@ -656,7 +813,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     int count = _platforms.values.where((v) => v).length;
     if (count == 1) {
       String name = _platforms.keys.firstWhere((k) => _platforms[k] == true);
-      name = name == 'apple' ? 'Apple Music' : (name == 'youtube' ? 'YouTube' : 'Spotify');
+      name = name == 'apple'
+          ? 'Apple Music'
+          : (name == 'youtube' ? 'YouTube' : 'Spotify');
       return 'Note: This is your catalog valuation calculated for $name only.';
     }
     return 'Note: This is your catalog valuation calculated across combined platforms.';
@@ -664,10 +823,12 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
 
   Widget _buildResultsSection(Color brandGreen) {
     if (_estimatedValue == null) return const SizedBox.shrink();
-    
+
     final artistName = _artistData?['name'] ?? _searchController.text;
     String? imageUrl;
-    if (_artistData != null && _artistData!['images'] != null && (_artistData!['images'] as List).isNotEmpty) {
+    if (_artistData != null &&
+        _artistData!['images'] != null &&
+        (_artistData!['images'] as List).isNotEmpty) {
       imageUrl = _artistData!['images'][0]['url'];
     }
 
@@ -682,17 +843,20 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: brandGreen.withOpacity(0.3), width: 2),
-                image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
+                border: Border.all(
+                  color: brandGreen.withOpacity(0.3),
+                  width: 2,
+                ),
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                ),
                 boxShadow: [
-                  BoxShadow(
-                    color: brandGreen.withOpacity(0.2),
-                    blurRadius: 20,
-                  )
-                ]
+                  BoxShadow(color: brandGreen.withOpacity(0.2), blurRadius: 20),
+                ],
               ),
             ),
-            
+
           Text(
             artistName,
             style: GoogleFonts.outfit(
@@ -702,7 +866,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             ),
           ),
           const SizedBox(height: 32),
-          
+
           Text(
             'ESTIMATED CATALOG VALUE',
             style: GoogleFonts.inter(
@@ -722,9 +886,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               height: 1,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -732,7 +896,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E293B).withOpacity(0.3),
-                  border: Border.all(color: const Color(0xFF334155).withOpacity(0.5)),
+                  border: Border.all(
+                    color: const Color(0xFF334155).withOpacity(0.5),
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -757,7 +923,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -768,12 +934,16 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             ),
             child: Text(
               '${_getPlatformName()} @ ${_royaltyShare.toStringAsFixed(0)}% ROYALTY SHARE',
-              style: GoogleFonts.inter(color: brandGreen, fontSize: 11, fontWeight: FontWeight.w700),
+              style: GoogleFonts.inter(
+                color: brandGreen,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -792,13 +962,18 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 Expanded(
                   child: Text(
                     _getNoteText(),
-                    style: GoogleFonts.inter(color: Colors.white, fontSize: 13, height: 1.4, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 13,
+                      height: 1.4,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 32),
 
           // Controls Box
@@ -814,14 +989,23 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Royalty share', style: GoogleFonts.inter(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Royalty share',
+                      style: GoogleFonts.inter(
+                        color: Colors.white70,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Row(
                       children: [
                         Container(
                           height: 40,
                           decoration: BoxDecoration(
                             color: const Color(0xFF041510),
-                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -833,32 +1017,52 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                                   if (_royaltyShare > 0) {
                                     setState(() {
                                       _royaltyShare -= 1;
-                                      _royaltyController.text = _royaltyShare.toString();
+                                      _royaltyController.text = _royaltyShare
+                                          .toString();
                                     });
                                   }
                                 },
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                  child: Icon(Icons.remove, size: 16, color: Colors.white54),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 8,
+                                  ),
+                                  child: Icon(
+                                    Icons.remove,
+                                    size: 16,
+                                    color: Colors.white54,
+                                  ),
                                 ),
                               ),
                               SizedBox(
                                 width: 42,
                                 child: TextField(
                                   controller: _royaltyController,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.only(bottom: 12),
+                                    contentPadding: const EdgeInsets.only(
+                                      bottom: 12,
+                                    ),
                                     suffixText: '%',
-                                    suffixStyle: GoogleFonts.inter(color: Colors.white30, fontSize: 13),
+                                    suffixStyle: GoogleFonts.inter(
+                                      color: Colors.white30,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   onChanged: (value) {
                                     if (value.isNotEmpty) {
                                       double? parsed = double.tryParse(value);
-                                      if (parsed != null) setState(() => _royaltyShare = parsed);
+                                      if (parsed != null)
+                                        setState(() => _royaltyShare = parsed);
                                     }
                                   },
                                 ),
@@ -869,13 +1073,21 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                                   if (_royaltyShare < 100) {
                                     setState(() {
                                       _royaltyShare += 1;
-                                      _royaltyController.text = _royaltyShare.toString();
+                                      _royaltyController.text = _royaltyShare
+                                          .toString();
                                     });
                                   }
                                 },
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                  child: Icon(Icons.add, size: 16, color: Colors.white54),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 8,
+                                  ),
+                                  child: Icon(
+                                    Icons.add,
+                                    size: 16,
+                                    color: Colors.white54,
+                                  ),
                                 ),
                               ),
                             ],
@@ -890,58 +1102,85 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: brandGreen.withOpacity(0.1),
-                              border: Border.all(color: brandGreen.withOpacity(0.2)),
+                              border: Border.all(
+                                color: brandGreen.withOpacity(0.2),
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '100%',
-                              style: GoogleFonts.inter(color: brandGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.inter(
+                                color: brandGreen,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        )
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Currency', style: GoogleFonts.inter(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Currency',
+                      style: GoogleFonts.inter(
+                        color: Colors.white70,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Container(
                       height: 40,
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
                         color: const Color(0xFF041510),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _currency,
                           dropdownColor: const Color(0xFF081F17),
-                          icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.5)),
-                          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                           onChanged: (String? newValue) {
                             if (newValue != null) {
                               setState(() => _currency = newValue);
                             }
                           },
-                          items: _exchangeRates.keys.toList()
+                          items: _exchangeRates.keys
+                              .toList()
                               .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              })
+                              .toList(),
                         ),
                       ),
-                    )
+                    ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -990,9 +1229,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20),
@@ -1006,8 +1245,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                   color: const Color(0xFFC29C5B).withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
-                )
-              ]
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1024,7 +1263,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
