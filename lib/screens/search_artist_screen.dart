@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'dart:math';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -281,7 +279,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     double rate = _exchangeRates[_currency] ?? 1.0;
     double converted = adjustedValue * rate;
     
-    final Map<String, String> _currencySymbols = {
+    final Map<String, String> currencySymbols = {
       'USD': '\$',
       'GBP': '£',
       'EUR': '€',
@@ -302,7 +300,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       'HKD': 'HK\$',
     };
     
-    String symbol = _currencySymbols[_currency] ?? '\$';
+    String symbol = currencySymbols[_currency] ?? '\$';
     
     String numStr = converted.round().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -317,13 +315,13 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     double rate = _exchangeRates[_currency] ?? 1.0;
     double converted = adjustedValue * rate;
     
-    final Map<String, String> _currencySymbols = {
+    final Map<String, String> currencySymbols = {
       'USD': '\$', 'GBP': '£', 'EUR': '€', 'AUD': 'A\$', 'CAD': 'C\$', 
       'CHF': 'CHF', 'JPY': '¥', 'CNY': '¥', 'INR': '₹', 'ZAR': 'R', 
       'BRL': 'R\$', 'MXN': '\$', 'NZD': 'NZ\$', 'SEK': 'kr', 
       'NOK': 'kr', 'DKK': 'kr', 'SGD': 'S\$', 'HKD': 'HK\$',
     };
-    String symbol = _currencySymbols[_currency] ?? '\$';
+    String symbol = currencySymbols[_currency] ?? '\$';
     
     if (converted >= 1000000) {
       return '≈ $symbol${(converted / 1000000).toStringAsFixed(2)} million';
@@ -342,9 +340,9 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.08) : Colors.transparent,
+          color: isSelected ? activeColor.withValues(alpha: 0.08) : Colors.transparent,
           border: Border.all(
-            color: isSelected ? activeColor.withOpacity(0.5) : Colors.white.withOpacity(0.15),
+            color: isSelected ? activeColor.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.15),
           ),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -355,7 +353,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: isSelected ? activeColor : Colors.white.withOpacity(0.1),
+                color: isSelected ? activeColor : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: isSelected 
@@ -409,8 +407,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: brandGreen.withOpacity(0.1),
-                        border: Border.all(color: brandGreen.withOpacity(0.3)),
+                        color: brandGreen.withValues(alpha: 0.1),
+                        border: Border.all(color: brandGreen.withValues(alpha: 0.3)),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(Icons.bar_chart, color: brandGreen, size: 16),
@@ -434,8 +432,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: brandGreen.withOpacity(0.1),
-                    border: Border.all(color: brandGreen.withOpacity(0.3)),
+                    color: brandGreen.withValues(alpha: 0.1),
+                    border: Border.all(color: brandGreen.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -492,7 +490,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       height: 1.5,
                     ),
                   ),
@@ -507,7 +505,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: const Color(0xFF081F17), // Slightly lighter green box
-                      border: Border.all(color: brandGreen.withOpacity(0.15)),
+                      border: Border.all(color: brandGreen.withValues(alpha: 0.15)),
                       borderRadius: BorderRadius.circular(32),
                     ),
                     child: Column(
@@ -517,7 +515,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                         Container(
                           decoration: BoxDecoration(
                             color: bgColor,
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: TextField(
@@ -527,7 +525,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                             onChanged: (text) => setState(() {}),
                             decoration: InputDecoration(
                               hintText: 'Search artist...',
-                              hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.3)),
+                              hintStyle: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3)),
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.all(18.0),
                                 child: Icon(Icons.search, color: Colors.white54, size: 22),
@@ -565,7 +563,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                           'Estimates are indicative and based on publicly available top-10 streaming data.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                             fontSize: 11,
                             height: 1.5,
                           ),
@@ -580,7 +578,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             decoration: BoxDecoration(
-                              color: hasInput ? brandGreen.withOpacity(0.15) : Colors.white.withOpacity(0.03),
+                              color: hasInput ? brandGreen.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Row(
@@ -684,11 +682,11 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: brandGreen.withOpacity(0.3), width: 2),
+                border: Border.all(color: brandGreen.withValues(alpha: 0.3), width: 2),
                 image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
                 boxShadow: [
                   BoxShadow(
-                    color: brandGreen.withOpacity(0.2),
+                    color: brandGreen.withValues(alpha: 0.2),
                     blurRadius: 20,
                   )
                 ]
@@ -733,8 +731,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.3),
-                  border: Border.all(color: const Color(0xFF334155).withOpacity(0.5)),
+                  color: const Color(0xFF1E293B).withValues(alpha: 0.3),
+                  border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.5)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -751,7 +749,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
               Text(
                 _formatQuickRead(_estimatedValue!),
                 style: GoogleFonts.inter(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
@@ -764,8 +762,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              color: Colors.white.withValues(alpha: 0.05),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -808,7 +806,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: const Color(0xFF081F17),
-              border: Border.all(color: brandGreen.withOpacity(0.15)),
+              border: Border.all(color: brandGreen.withValues(alpha: 0.15)),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -823,7 +821,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                           height: 40,
                           decoration: BoxDecoration(
                             color: const Color(0xFF041510),
-                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -894,8 +892,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
                             decoration: BoxDecoration(
-                              color: brandGreen.withOpacity(0.1),
-                              border: Border.all(color: brandGreen.withOpacity(0.2)),
+                              color: brandGreen.withValues(alpha: 0.1),
+                              border: Border.all(color: brandGreen.withValues(alpha: 0.2)),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -918,14 +916,14 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
                         color: const Color(0xFF041510),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _currency,
                           dropdownColor: const Color(0xFF081F17),
-                          icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.5)),
+                          icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.5)),
                           style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
                           onChanged: (String? newValue) {
                             if (newValue != null) {
@@ -954,7 +952,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
             'Want to see the more detailed valuation report? Please login.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 15,
               fontWeight: FontWeight.w500,
               height: 1.5,
@@ -1025,7 +1023,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFC29C5B).withOpacity(0.3),
+                    color: const Color(0xFFC29C5B).withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   )

@@ -9,7 +9,6 @@ import 'screens/search_artist_screen.dart';
 import 'screens/valuation_dashboard_screen.dart';
 
 import 'screens/auth_screen.dart';
-import 'screens/main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -84,7 +83,7 @@ class MyApp extends StatelessWidget {
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF10b981), // emerald-500
           secondary: Color(0xFF10b981),
-          background: Color(0xFF09090b),
+          surface: Color(0xFF09090b),
         ),
       ),
       routerConfig: _router,

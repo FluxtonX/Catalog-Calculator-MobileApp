@@ -127,13 +127,13 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: widget.platform == 'spotify' 
-                    ? const Color(0xFF10b981).withOpacity(0.05)
-                    : const Color(0xFF3b82f6).withOpacity(0.05),
+                    ? const Color(0xFF10b981).withValues(alpha: 0.05)
+                    : const Color(0xFF3b82f6).withValues(alpha: 0.05),
                 boxShadow: [
                   BoxShadow(
                     color: widget.platform == 'spotify' 
-                        ? const Color(0xFF10b981).withOpacity(0.1)
-                        : const Color(0xFF3b82f6).withOpacity(0.1), 
+                        ? const Color(0xFF10b981).withValues(alpha: 0.1)
+                        : const Color(0xFF3b82f6).withValues(alpha: 0.1), 
                     blurRadius: 100
                   ),
                 ],
@@ -210,7 +210,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                 ElevatedButton(
                   onPressed: () => context.pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
                   ),
                   child: const Text('Go Back'),
                 )
@@ -267,7 +267,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.1), width: 2),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 2),
                     image: imageUrl != null 
                         ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
                         : null,
@@ -293,8 +293,8 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: widget.platform == 'spotify' 
-                              ? const Color(0xFF10b981).withOpacity(0.1)
-                              : Colors.white.withOpacity(0.1),
+                              ? const Color(0xFF10b981).withValues(alpha: 0.1)
+                              : Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -330,7 +330,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10b981).withOpacity(0.3),
+                    color: const Color(0xFF10b981).withValues(alpha: 0.3),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   )
@@ -346,7 +346,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                       Text(
                         'EST. CATALOG VALUATION',
                         style: GoogleFonts.inter(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1,
@@ -373,7 +373,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                         children: [
                           Text(
                             'Est. Monthly Rev',
-                            style: GoogleFonts.inter(color: Colors.white.withOpacity(0.8), fontSize: 12),
+                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -387,7 +387,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                         children: [
                           Text(
                             'Market Multiple',
-                            style: GoogleFonts.inter(color: Colors.white.withOpacity(0.8), fontSize: 12),
+                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -416,9 +416,9 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
+                    color: Colors.white.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   child: Column(
                     children: [
@@ -426,7 +426,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF3b82f6).withOpacity(0.1),
+                          color: const Color(0xFF3b82f6).withValues(alpha: 0.1),
                         ),
                         child: const Icon(Icons.lock_outline, color: Color(0xFF60a5fa), size: 32),
                       ),
@@ -497,7 +497,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Column(

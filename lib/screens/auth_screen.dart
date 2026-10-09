@@ -163,11 +163,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     color: const Color(0xFF041510),
-                    border: Border.all(color: const Color(0xFF34d399).withOpacity(0.3), width: 2),
+                    border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.3), width: 2),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF34d399).withOpacity(0.15),
+                        color: const Color(0xFF34d399).withValues(alpha: 0.15),
                         blurRadius: 30,
                         spreadRadius: 5,
                       )
@@ -196,7 +196,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(
                   'Sign in to access catalog valuations',
                   style: GoogleFonts.inter(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 16,
                   ),
                 ),
@@ -208,8 +208,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     margin: const EdgeInsets.only(bottom: 24),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                      color: Colors.red.withValues(alpha: 0.1),
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -231,7 +231,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: const Color(0xFF081F17),
-                    border: Border.all(color: const Color(0xFF34d399).withOpacity(0.15)),
+                    border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.15)),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
@@ -279,19 +279,19 @@ class _AuthScreenState extends State<AuthScreen> {
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider(color: Colors.white.withOpacity(0.1))),
+                          Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'OR',
                               style: GoogleFonts.inter(
-                                color: Colors.white.withOpacity(0.4),
+                                color: Colors.white.withValues(alpha: 0.4),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          Expanded(child: Divider(color: Colors.white.withOpacity(0.1))),
+                          Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.1))),
                         ],
                       ),
                       
@@ -302,8 +302,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF34d399).withOpacity(0.1),
-                            border: Border.all(color: const Color(0xFF34d399).withOpacity(0.3)),
+                            color: const Color(0xFF34d399).withValues(alpha: 0.1),
+                            border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -340,7 +340,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 color: const Color(0xFF041510),
-                                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: TextField(
@@ -349,8 +349,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
                                   hintText: 'Enter your email address',
-                                  hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.3)),
-                                  prefixIcon: Icon(Icons.email_outlined, color: Colors.white.withOpacity(0.4)),
+                                  hintStyle: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3)),
+                                  prefixIcon: Icon(Icons.email_outlined, color: Colors.white.withValues(alpha: 0.4)),
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(vertical: 18),
                                 ),
@@ -369,7 +369,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF34d399).withOpacity(0.2),
+                                      color: const Color(0xFF34d399).withValues(alpha: 0.2),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     )
@@ -412,7 +412,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   'By signing in, you agree to our Terms of Service\nand Privacy Policy.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     fontSize: 12,
                     height: 1.5,
                   ),

@@ -86,8 +86,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: _brandGreen.withOpacity(0.1),
-                  border: Border.all(color: _brandGreen.withOpacity(0.3)),
+                  color: _brandGreen.withValues(alpha: 0.1),
+                  border: Border.all(color: _brandGreen.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(Icons.bar_chart, color: _brandGreen, size: 16),
@@ -109,13 +109,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
                 'SKIP',
                 style: GoogleFonts.inter(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1,
@@ -139,11 +139,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           height: 160,
           decoration: BoxDecoration(
             color: _bgColor,
-            border: Border.all(color: _brandGreen.withOpacity(0.3), width: 2),
+            border: Border.all(color: _brandGreen.withValues(alpha: 0.3), width: 2),
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
               BoxShadow(
-                color: _brandGreen.withOpacity(0.05),
+                color: _brandGreen.withValues(alpha: 0.05),
                 blurRadius: 40,
                 spreadRadius: 10,
               )
@@ -160,10 +160,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF081F17),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
               ]
             ),
             child: Row(
@@ -195,10 +195,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF081F17),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
               ]
             ),
             child: Row(
@@ -258,8 +258,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: _brandGreen.withOpacity(0.1),
-                            border: Border.all(color: _brandGreen.withOpacity(0.3)),
+                            color: _brandGreen.withValues(alpha: 0.1),
+                            border: Border.all(color: _brandGreen.withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -315,7 +315,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             height: 1.5,
                           ),
                         ),
@@ -343,7 +343,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 6,
                         width: _currentPage == index ? 24 : 6,
                         decoration: BoxDecoration(
-                          color: _currentPage == index ? _brandGreen : Colors.white.withOpacity(0.2),
+                          color: _currentPage == index ? _brandGreen : Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -362,7 +362,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: _brandGreen.withOpacity(0.2),
+                            color: _brandGreen.withValues(alpha: 0.2),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )

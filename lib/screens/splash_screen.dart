@@ -59,11 +59,11 @@ class _SplashScreenState extends State<SplashScreen>
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: bgColor,
-                      border: Border.all(color: brandGreen.withOpacity(0.3), width: 2),
+                      border: Border.all(color: brandGreen.withValues(alpha: 0.3), width: 2),
                       borderRadius: BorderRadius.circular(32),
                       boxShadow: [
                         BoxShadow(
-                          color: brandGreen.withOpacity(0.1),
+                          color: brandGreen.withValues(alpha: 0.1),
                           blurRadius: 40,
                           spreadRadius: 10,
                         )
@@ -104,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
                   Text(
                     'VALUATION & INSIGHT',
                     style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 3,
@@ -131,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen>
                           height: 4,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(2),
                           ),
                           child: Align(
@@ -164,7 +164,7 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       child: const Icon(
                         Icons.arrow_forward,

@@ -40,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 32),
             CircleAvatar(
               radius: 50,
-              backgroundColor: brandGreen.withOpacity(0.2),
+              backgroundColor: brandGreen.withValues(alpha: 0.2),
               child: const Icon(Icons.person, size: 50, color: brandGreen),
             ),
             const SizedBox(height: 24),
@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.logout, color: Colors.white),
                 label: const Text('Log Out'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.withOpacity(0.8),
+                  backgroundColor: Colors.red.withValues(alpha: 0.8),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

@@ -26,7 +26,7 @@ class HistoryScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history, size: 64, color: brandGreen.withOpacity(0.5)),
+            Icon(Icons.history, size: 64, color: brandGreen.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
               'No history yet',
@@ -40,7 +40,7 @@ class HistoryScreen extends StatelessWidget {
             Text(
               'Your saved valuations will appear here.',
               style: GoogleFonts.inter(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),
