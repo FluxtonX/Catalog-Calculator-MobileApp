@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -57,8 +58,14 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       // 1. Initialize native Google Sign In
+      // For iOS, we explicitly pass the iOS Client ID.
+      // For Android, we only need the Web Client ID as serverClientId.
+      final String webClientId = '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com';
+      final String iosClientId = '660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a.apps.googleusercontent.com';
+
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com',
+        clientId: Platform.isIOS ? iosClientId : null,
+        serverClientId: webClientId,
       );
       
       final googleUser = await googleSignIn.signIn();
