@@ -1,31 +1,41 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_cubit.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SearchArtistScreen extends StatefulWidget {
+class SearchArtistScreen extends StatelessWidget {
   const SearchArtistScreen({super.key});
 
   @override
-  State<SearchArtistScreen> createState() => _SearchArtistScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => SearchArtistCubit(),
+      child: const SearchArtistView(),
+    );
+  }
 }
 
-class _SearchArtistScreenState extends State<SearchArtistScreen>
+class SearchArtistView extends StatefulWidget {
+  const SearchArtistView({super.key});
+
+  @override
+  State<SearchArtistView> createState() => _SearchArtistViewState();
+}
+
+class _SearchArtistViewState extends State<SearchArtistView>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _royaltyController = TextEditingController(text: '100');
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  bool _isSearching = false;
-  String? _errorMessage;
-  double? _estimatedValue;
-  Map<String, dynamic>? _artistData;
 
   // Multiple Platform Selection
   final Map<String, bool> _platforms = {
@@ -99,180 +109,12 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       _searchController.text = overrideQuery;
     }
 
-    if (!_platforms.values.any((isSelected) => isSelected)) {
-      setState(() => _errorMessage = 'Please select at least one data source.');
-      return;
-    }
-
     FocusScope.of(context).unfocus();
 
-    setState(() {
-      _isSearching = true;
-      _errorMessage = null;
-      _estimatedValue = null;
-    });
-
-    try {
-      final var platformsToFetch = <String>[];
-      if (_platforms['spotify'] == true) platformsToFetch.add('apify');
-      if (_platforms['apple'] == true) platformsToFetch.add('itunes');
-      if (_platforms['youtube'] == true) platformsToFetch.add('youtube');
-      
-      // CRITICAL - The Proxy Rule
-      if (_platforms['apple'] == true && _platforms['spotify'] != true) {
-        platformsToFetch.add('apify_proxy'); 
-      }
-
-      final var artistsMap = <String, Map<String, dynamic>>{};
-
-      final List<Future<void>> futures = platformsToFetch.map((fetchKey) async {
-        try {
-          final var functionName = fetchKey == 'apify_proxy' ? 'apify' : fetchKey;
-          final var requestBody = <String, dynamic>{'query': query};
-          if (fetchKey == 'itunes') {
-            requestBody['useMusicKit'] = true;
-          }
-
-          var response = await Supabase.instance.client.functions.invoke(
-            functionName,
-            body: requestBody,
-          );
-
-          if (fetchKey == 'itunes' && (response.data == null || (response.data is Map && response.data['error'] != null))) {
-            requestBody['useMusicKit'] = false;
-            response = await Supabase.instance.client.functions.invoke(
-              functionName,
-              body: requestBody,
-            );
-          }
-
-          var data = response.data;
-          
-          if (fetchKey == 'youtube' && (data == null || data['error'] != null || (data is Map && !data.containsKey('channels')))) {
-            try {
-              // Client-side fallback identical to web app's api.js
-              const var apiKey = 'AIzaSyBvlzgXH5IKpLZFckQu-_KXv_rdMELAdNw';
-              final httpClient = HttpClient();
-              final req1 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${Uri.encodeComponent(query)}&maxResults=1&key=$apiKey'));
-              final res1 = await req1.close();
-              final body1 = await res1.transform(utf8.decoder).join();
-              final json1 = jsonDecode(body1);
-              
-              if (json1['items'] != null && (json1['items'] as List).isNotEmpty) {
-                final String channelId = json1['items'][0]['id']['channelId'] ?? json1['items'][0]['id'];
-                
-                final req2 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=$channelId&key=$apiKey'));
-                final res2 = await req2.close();
-                final body2 = await res2.transform(utf8.decoder).join();
-                final json2 = jsonDecode(body2);
-                
-                if (json2['items'] != null && (json2['items'] as List).isNotEmpty) {
-                  final item = json2['items'][0];
-                  data = {
-                    'platform': 'youtube',
-                    'title': item['snippet']['title'],
-                    'channelTitle': item['snippet']['title'],
-                    'subscribers': int.tryParse(item['statistics']['subscriberCount']?.toString() ?? '0') ?? 0,
-                    'totalViews': int.tryParse(item['statistics']['viewCount']?.toString() ?? '0') ?? 0,
-                    'tracksCount': int.tryParse(item['statistics']['videoCount']?.toString() ?? '0') ?? 0,
-                  };
-                }
-              }
-            } catch (fallbackErr) {
-              print('YouTube direct fallback failed: $fallbackErr');
-            }
-          } else if (fetchKey == 'youtube' && data != null && data is Map) {
-            String? channelId;
-            if (data['channels'] != null && (data['channels'] as List).isNotEmpty) {
-              channelId = data['channels'][0]['id'];
-            } else if (data['channel'] != null) {
-              channelId = data['channel']['id'];
-            }
-            
-            if (channelId != null) {
-              final detailsResponse = await Supabase.instance.client.functions.invoke(
-                'youtube',
-                body: {'query': query, 'channelId': channelId},
-              );
-              data = detailsResponse.data;
-            }
-          }
-
-          Map<String, dynamic>? artistData;
-          if (data != null && data is Map<String, dynamic> && (data.containsKey('name') || data.containsKey('title') || data.containsKey('channelTitle') || data.containsKey('platform'))) {
-            artistData = data;
-          } else if (data != null && data['artists'] != null) {
-             final artistsData = data['artists'];
-             if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-                artistData = artistsData['items'][0];
-             }
-          } else if (data != null && data['results'] != null && (data['results'] as List).isNotEmpty) {
-             artistData = data['results'][0];
-          } else if (data != null && data is Map<String, dynamic>) {
-             // Fallback: just use the raw map if it seems like a valid object
-             artistData = data;
-          }
-
-          if (artistData != null) {
-            final var mapKey = fetchKey == 'apify' ? 'spotify' : (fetchKey == 'apify_proxy' ? 'spotify_proxy' : fetchKey);
-            artistsMap[mapKey] = Map<String, dynamic>.from(artistData)..['platform'] = mapKey;
-          }
-        } catch (e) {
-          print('Failed to fetch $fetchKey: $e');
-          if (fetchKey == 'itunes') {
-            try {
-              final fallbackResponse = await Supabase.instance.client.functions.invoke(
-                'itunes',
-                body: {'query': query, 'useMusicKit': false},
-              );
-              final data = fallbackResponse.data;
-              Map<String, dynamic>? artistData;
-              if (data != null && data is Map<String, dynamic> && (data.containsKey('name') || data.containsKey('title') || data.containsKey('channelTitle') || data.containsKey('platform'))) {
-                artistData = data;
-              } else if (data != null && data['artists'] != null) {
-                 final artistsData = data['artists'];
-                 if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-                    artistData = artistsData['items'][0];
-                 }
-              } else if (data != null && data['results'] != null && (data['results'] as List).isNotEmpty) {
-                 artistData = data['results'][0];
-              } else if (data != null && data is Map<String, dynamic>) {
-                 artistData = data;
-              }
-              if (artistData != null) {
-                artistsMap['itunes'] = Map<String, dynamic>.from(artistData)..['platform'] = 'itunes';
-              }
-            } catch (fallbackError) {
-              print('Fallback failed for itunes: $fallbackError');
-            }
-          }
-        }
-      }).toList();
-
-      await Future.wait(futures);
-
-      if (artistsMap.isEmpty) {
-        throw Exception('Could not find catalog data for this artist on any selected platform.');
-      }
-      
-      _artistData = artistsMap['spotify'] ?? artistsMap['spotify_proxy'] ?? artistsMap['itunes'] ?? artistsMap['youtube'] ?? artistsMap.values.first;
-
-      final calculateResponse = await Supabase.instance.client.functions.invoke(
-        'calculate-valuation',
-        body: {'artistsMap': artistsMap},
-      );
-
-      final finalData = calculateResponse.data;
-      if (finalData == null || finalData['midEstimate'] == null) {
-        throw Exception('Valuation engine returned invalid data.');
-      }
-
-      setState(() => _estimatedValue = (finalData['midEstimate'] as num).toDouble());
-    } catch (e) {
-      setState(() => _errorMessage = e.toString().replaceAll('Exception: ', ''));
-    } finally {
-      setState(() => _isSearching = false);
-    }
+    await context.read<SearchArtistCubit>().searchArtist(
+      query: query,
+      platforms: _platforms,
+    );
   }
 
   String _formatLocalCurrency(double value) {
@@ -382,15 +224,22 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
 
   @override
   Widget build(BuildContext context) {
-    final showResults = _estimatedValue != null;
-    final hasInput = _searchController.text.trim().isNotEmpty;
-    
-    // Very dark emerald background color matching the image
-    const bgColor = Color(0xFF041510);
-    const brandGreen = Color(0xFF34d399); // Bright green
-    
-    return Scaffold(
-      backgroundColor: bgColor,
+    return BlocBuilder<SearchArtistCubit, SearchArtistState>(
+      builder: (context, state) {
+        final isSearching = state is SearchArtistLoading;
+        final errorMessage = state is SearchArtistError ? state.message : null;
+        final estimatedValue = state is SearchArtistLoaded ? state.estimatedValue : null;
+        final artistData = state is SearchArtistLoaded ? state.artistData : null;
+
+        final showResults = estimatedValue != null;
+        final hasInput = _searchController.text.trim().isNotEmpty;
+        
+        // Very dark emerald background color matching the image
+        const bgColor = Color(0xFF041510);
+        const brandGreen = Color(0xFF34d399); // Bright green
+        
+        return Scaffold(
+          backgroundColor: bgColor,
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -573,7 +422,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                         
                         // Calculate Button
                         GestureDetector(
-                          onTap: (hasInput && !_isSearching) ? _handleCalculate : null,
+                          onTap: (hasInput && !isSearching) ? _handleCalculate : null,
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 18),
@@ -584,7 +433,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                if (_isSearching)
+                                if (isSearching)
                                   const SizedBox(
                                     width: 20, height: 20,
                                     child: CircularProgressIndicator(
@@ -600,7 +449,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                                   ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  _isSearching ? 'Calculating...' : 'Calculate Valuation',
+                                  isSearching ? 'Calculating...' : 'Calculate Valuation',
                                   style: GoogleFonts.inter(
                                     color: hasInput ? brandGreen : Colors.white24,
                                     fontSize: 16,
@@ -616,11 +465,11 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                   ),
                 ),
 
-                if (_errorMessage != null)
+                if (errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      _errorMessage!,
+                      errorMessage,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(color: Colors.red.shade400, fontSize: 14),
                     ),
@@ -1048,6 +897,8 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           )
         ],
       ),
+    );
+      },
     );
   }
 }

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'search_artist_state.dart';
 
 class SearchArtistCubit extends Cubit<SearchArtistState> {
   SearchArtistCubit() : super(SearchArtistInitial());
