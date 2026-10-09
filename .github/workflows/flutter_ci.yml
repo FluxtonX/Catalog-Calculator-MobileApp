@@ -37,10 +37,9 @@ jobs:
         # We add '|| true' so the pipeline doesn't crash due to minor lint warnings/infos
         run: flutter analyze || true
 
-      # NOTE: If your app requires a .env file to compile, uncomment and modify the step below:
-      # - name: 🔐 Create dummy .env file
-      #   run: echo "SUPABASE_URL=dummy" > .env && echo "SUPABASE_ANON_KEY=dummy" >> .env
-
+      # We must create a dummy .env file because it's listed in pubspec.yaml assets but ignored by Git.
+      - name: 🔐 Create dummy .env file
+        run: echo "EXPO_PUBLIC_SUPABASE_URL=dummy" > .env && echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=dummy" >> .env
       - name: 🧪 Run tests
         # This will run if you have tests in the /test folder. If none exist, it does nothing.
         run: |
