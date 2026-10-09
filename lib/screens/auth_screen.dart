@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -60,10 +61,10 @@ class _AuthScreenState extends State<AuthScreen> {
       // 1. Initialize native Google Sign In
       // For iOS, we explicitly pass the iOS Client ID.
       // For Android, we only need the Web Client ID as serverClientId.
-      final String webClientId = '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com';
-      final String iosClientId = '660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a.apps.googleusercontent.com';
+      const webClientId = '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com';
+      const iosClientId = '660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a.apps.googleusercontent.com';
 
-      final GoogleSignIn googleSignIn = GoogleSignIn(
+      final googleSignIn = GoogleSignIn(
         clientId: Platform.isIOS ? iosClientId : null,
         serverClientId: webClientId,
       );
@@ -152,7 +153,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

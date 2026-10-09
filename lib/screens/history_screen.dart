@@ -6,8 +6,8 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF041510);
-    const Color brandGreen = Color(0xFF34d399);
+    const bgColor = Color(0xFF041510);
+    const brandGreen = Color(0xFF34d399);
 
     return Scaffold(
       backgroundColor: bgColor,

@@ -5,14 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ValuationDashboardScreen extends StatefulWidget {
-  final String platform;
-  final String query;
 
   const ValuationDashboardScreen({
-    super.key,
-    required this.platform,
-    required this.query,
+    required this.platform, required this.query, super.key,
   });
+  final String platform;
+  final String query;
 
   @override
   State<ValuationDashboardScreen> createState() => _ValuationDashboardScreenState();
@@ -50,18 +48,18 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
               _artistData = artistsData['items'][0];
               _calculateValuation();
            } else {
-              _errorMessage = "Artist not found.";
+              _errorMessage = 'Artist not found.';
            }
         } else {
-          _errorMessage = "Artist not found.";
+          _errorMessage = 'Artist not found.';
         }
       } else {
         // For YouTube and Apple Music, mock or use different endpoints.
         // We will default to a basic placeholder for now if not Spotify.
-        _errorMessage = "Platform ${widget.platform} integration coming soon.";
+        _errorMessage = 'Platform ${widget.platform} integration coming soon.';
       }
     } catch (e) {
-      _errorMessage = "Failed to load data: $e";
+      _errorMessage = 'Failed to load data: $e';
     } finally {
       if (mounted) {
         setState(() {
@@ -89,7 +87,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
     // Rough estimate:
     // 5 streams per listener per month
     // $0.003 per stream
-    double estimatedMonthlyStreams = listeners * 5;
+    final var estimatedMonthlyStreams = listeners * 5;
     _monthlyRevenue = estimatedMonthlyStreams * 0.003;
     
     // Valuation = LTM (12 months) * 3x multiple
@@ -185,7 +183,7 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
@@ -223,10 +221,10 @@ class _ValuationDashboardScreenState extends State<ValuationDashboardScreen> {
   }
 
   Widget _buildDashboard() {
-    final artistName = _artistData!['name'] ?? widget.query;
+    final artistName = (_artistData!['name'] as String?) ?? widget.query;
     String? imageUrl;
     if (_artistData!['images'] != null && (_artistData!['images'] as List).isNotEmpty) {
-      imageUrl = _artistData!['images'][0]['url'];
+      imageUrl = _artistData!['images'][0]['url'] as String?;
     }
 
     return SingleChildScrollView(

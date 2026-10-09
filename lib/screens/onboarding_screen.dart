@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'badge1Icon': Icons.arrow_upward,
       'badge1Text': '+18% YoY',
       'badge2Icon': Icons.monetization_on,
-      'badge2Text': '\$1.2M est.',
+      'badge2Text': r'$1.2M est.',
       'stepBadge': 'STEP 2',
       'title1': 'Get Instant\n',
       'titleHighlight': 'Valuations',
@@ -330,7 +330,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             
             // Bottom Area (Indicators and Next button)
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
                   Row(

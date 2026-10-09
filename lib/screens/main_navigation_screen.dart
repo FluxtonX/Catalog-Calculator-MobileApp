@@ -1,7 +1,7 @@
+import 'package:catalog_calculator_flutter/screens/history_screen.dart';
+import 'package:catalog_calculator_flutter/screens/profile_screen.dart';
+import 'package:catalog_calculator_flutter/screens/search_artist_screen.dart';
 import 'package:flutter/material.dart';
-import 'search_artist_screen.dart';
-import 'history_screen.dart';
-import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -21,8 +21,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Color(0xFF041510);
-    const Color brandGreen = Color(0xFF34d399);
+    const bgColor = Color(0xFF041510);
+    const brandGreen = Color(0xFF34d399);
 
     return Scaffold(
       body: IndexedStack(

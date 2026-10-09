@@ -1,21 +1,19 @@
+import 'package:catalog_calculator_flutter/screens/auth_screen.dart';
+import 'package:catalog_calculator_flutter/screens/onboarding_screen.dart';
+import 'package:catalog_calculator_flutter/screens/search_artist_screen.dart';
+import 'package:catalog_calculator_flutter/screens/splash_screen.dart';
+import 'package:catalog_calculator_flutter/screens/valuation_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'screens/onboarding_screen.dart';
-
-import 'screens/splash_screen.dart';
-import 'screens/search_artist_screen.dart';
-import 'screens/valuation_dashboard_screen.dart';
-
-import 'screens/auth_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Load environment variables
   try {
-    await dotenv.load(fileName: ".env");
+    await dotenv.load();
   } catch (e) {
     debugPrint('DotEnv load failed: $e');
   }
@@ -93,8 +91,8 @@ class MyApp extends StatelessWidget {
 
 // Temporary Placeholder Screen
 class PlaceholderScreen extends StatelessWidget {
+  const PlaceholderScreen({required this.title, super.key});
   final String title;
-  const PlaceholderScreen({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {

@@ -1,11 +1,12 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SearchArtistScreen extends StatefulWidget {
   const SearchArtistScreen({super.key});
@@ -35,7 +36,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
 
   // Results Options State
   String _currency = 'USD';
-  double _royaltyShare = 100.0;
+  double _royaltyShare = 100;
 
   final Map<String, double> _exchangeRates = {
     'USD': 1.0,
@@ -83,10 +84,10 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     if (str == null) return 0;
     if (str is num) return str.toDouble();
     final upper = str.toString().toUpperCase();
-    if (upper.contains("B")) return double.parse(upper.replaceAll("B", "")) * 1e9;
-    if (upper.contains("M")) return double.parse(upper.replaceAll("M", "")) * 1e6;
-    if (upper.contains("K")) return double.parse(upper.replaceAll("K", "")) * 1e3;
-    return double.tryParse(upper.replaceAll(RegExp(r','), '')) ?? 0;
+    if (upper.contains('B')) return double.parse(upper.replaceAll('B', '')) * 1e9;
+    if (upper.contains('M')) return double.parse(upper.replaceAll('M', '')) * 1e6;
+    if (upper.contains('K')) return double.parse(upper.replaceAll('K', '')) * 1e3;
+    return double.tryParse(upper.replaceAll(RegExp(','), '')) ?? 0;
   }
 
 
@@ -99,7 +100,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     }
 
     if (!_platforms.values.any((isSelected) => isSelected)) {
-      setState(() => _errorMessage = "Please select at least one data source.");
+      setState(() => _errorMessage = 'Please select at least one data source.');
       return;
     }
 
@@ -112,7 +113,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
     });
 
     try {
-      List<String> platformsToFetch = [];
+      final var platformsToFetch = <String>[];
       if (_platforms['spotify'] == true) platformsToFetch.add('apify');
       if (_platforms['apple'] == true) platformsToFetch.add('itunes');
       if (_platforms['youtube'] == true) platformsToFetch.add('youtube');
@@ -122,12 +123,12 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
         platformsToFetch.add('apify_proxy'); 
       }
 
-      Map<String, Map<String, dynamic>> artistsMap = {};
+      final var artistsMap = <String, Map<String, dynamic>>{};
 
-      List<Future<void>> futures = platformsToFetch.map((fetchKey) async {
+      final List<Future<void>> futures = platformsToFetch.map((fetchKey) async {
         try {
-          String functionName = fetchKey == 'apify_proxy' ? 'apify' : fetchKey;
-          Map<String, dynamic> requestBody = {'query': query};
+          final var functionName = fetchKey == 'apify_proxy' ? 'apify' : fetchKey;
+          final var requestBody = <String, dynamic>{'query': query};
           if (fetchKey == 'itunes') {
             requestBody['useMusicKit'] = true;
           }
@@ -150,23 +151,23 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           if (fetchKey == 'youtube' && (data == null || data['error'] != null || (data is Map && !data.containsKey('channels')))) {
             try {
               // Client-side fallback identical to web app's api.js
-              String apiKey = 'AIzaSyBvlzgXH5IKpLZFckQu-_KXv_rdMELAdNw';
-              var httpClient = HttpClient();
-              var req1 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${Uri.encodeComponent(query)}&maxResults=1&key=$apiKey'));
-              var res1 = await req1.close();
-              var body1 = await res1.transform(utf8.decoder).join();
-              var json1 = jsonDecode(body1);
+              const var apiKey = 'AIzaSyBvlzgXH5IKpLZFckQu-_KXv_rdMELAdNw';
+              final httpClient = HttpClient();
+              final req1 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${Uri.encodeComponent(query)}&maxResults=1&key=$apiKey'));
+              final res1 = await req1.close();
+              final body1 = await res1.transform(utf8.decoder).join();
+              final json1 = jsonDecode(body1);
               
               if (json1['items'] != null && (json1['items'] as List).isNotEmpty) {
-                String channelId = json1['items'][0]['id']['channelId'] ?? json1['items'][0]['id'];
+                final String channelId = json1['items'][0]['id']['channelId'] ?? json1['items'][0]['id'];
                 
-                var req2 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=$channelId&key=$apiKey'));
-                var res2 = await req2.close();
-                var body2 = await res2.transform(utf8.decoder).join();
-                var json2 = jsonDecode(body2);
+                final req2 = await httpClient.getUrl(Uri.parse('https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=$channelId&key=$apiKey'));
+                final res2 = await req2.close();
+                final body2 = await res2.transform(utf8.decoder).join();
+                final json2 = jsonDecode(body2);
                 
                 if (json2['items'] != null && (json2['items'] as List).isNotEmpty) {
-                  var item = json2['items'][0];
+                  final item = json2['items'][0];
                   data = {
                     'platform': 'youtube',
                     'title': item['snippet']['title'],
@@ -213,7 +214,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           }
 
           if (artistData != null) {
-            String mapKey = fetchKey == 'apify' ? 'spotify' : (fetchKey == 'apify_proxy' ? 'spotify_proxy' : fetchKey);
+            final var mapKey = fetchKey == 'apify' ? 'spotify' : (fetchKey == 'apify_proxy' ? 'spotify_proxy' : fetchKey);
             artistsMap[mapKey] = Map<String, dynamic>.from(artistData)..['platform'] = mapKey;
           }
         } catch (e) {
@@ -251,7 +252,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
       await Future.wait(futures);
 
       if (artistsMap.isEmpty) {
-        throw Exception("Could not find catalog data for this artist on any selected platform.");
+        throw Exception('Could not find catalog data for this artist on any selected platform.');
       }
       
       _artistData = artistsMap['spotify'] ?? artistsMap['spotify_proxy'] ?? artistsMap['itunes'] ?? artistsMap['youtube'] ?? artistsMap.values.first;
@@ -263,7 +264,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
 
       final finalData = calculateResponse.data;
       if (finalData == null || finalData['midEstimate'] == null) {
-        throw Exception("Valuation engine returned invalid data.");
+        throw Exception('Valuation engine returned invalid data.');
       }
 
       setState(() => _estimatedValue = (finalData['midEstimate'] as num).toDouble());
@@ -275,53 +276,53 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
   }
 
   String _formatLocalCurrency(double value) {
-    double adjustedValue = value * (_royaltyShare / 100);
-    double rate = _exchangeRates[_currency] ?? 1.0;
-    double converted = adjustedValue * rate;
+    final adjustedValue = value * (_royaltyShare / 100);
+    final rate = _exchangeRates[_currency] ?? 1.0;
+    final var converted = adjustedValue * rate;
     
-    final Map<String, String> currencySymbols = {
-      'USD': '\$',
+    final currencySymbols = <String, String>{
+      'USD': r'$',
       'GBP': '£',
       'EUR': '€',
-      'AUD': 'A\$',
-      'CAD': 'C\$',
+      'AUD': r'A$',
+      'CAD': r'C$',
       'CHF': 'CHF',
       'JPY': '¥',
       'CNY': '¥',
       'INR': '₹',
       'ZAR': 'R',
-      'BRL': 'R\$',
-      'MXN': '\$',
-      'NZD': 'NZ\$',
+      'BRL': r'R$',
+      'MXN': r'$',
+      'NZD': r'NZ$',
       'SEK': 'kr',
       'NOK': 'kr',
       'DKK': 'kr',
-      'SGD': 'S\$',
-      'HKD': 'HK\$',
+      'SGD': r'S$',
+      'HKD': r'HK$',
     };
     
-    String symbol = currencySymbols[_currency] ?? '\$';
+    final var symbol = currencySymbols[_currency] ?? r'$';
     
-    String numStr = converted.round().toString().replaceAllMapped(
+    final var numStr = converted.round().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},'
+      (m) => '${m[1]},'
     );
     
     return '$symbol$numStr';
   }
 
   String _formatQuickRead(double value) {
-    double adjustedValue = value * (_royaltyShare / 100);
-    double rate = _exchangeRates[_currency] ?? 1.0;
-    double converted = adjustedValue * rate;
+    final var adjustedValue = value * (_royaltyShare / 100);
+    final var rate = _exchangeRates[_currency] ?? 1.0;
+    final var converted = adjustedValue * rate;
     
-    final Map<String, String> currencySymbols = {
-      'USD': '\$', 'GBP': '£', 'EUR': '€', 'AUD': 'A\$', 'CAD': 'C\$', 
+    final currencySymbols = <String, String>{
+      'USD': r'$', 'GBP': '£', 'EUR': '€', 'AUD': r'A$', 'CAD': r'C$', 
       'CHF': 'CHF', 'JPY': '¥', 'CNY': '¥', 'INR': '₹', 'ZAR': 'R', 
-      'BRL': 'R\$', 'MXN': '\$', 'NZD': 'NZ\$', 'SEK': 'kr', 
-      'NOK': 'kr', 'DKK': 'kr', 'SGD': 'S\$', 'HKD': 'HK\$',
+      'BRL': r'R$', 'MXN': r'$', 'NZD': r'NZ$', 'SEK': 'kr', 
+      'NOK': 'kr', 'DKK': 'kr', 'SGD': r'S$', 'HKD': r'HK$',
     };
-    String symbol = currencySymbols[_currency] ?? '\$';
+    final symbol = currencySymbols[_currency] ?? r'$';
     
     if (converted >= 1000000) {
       return '≈ $symbol${(converted / 1000000).toStringAsFixed(2)} million';
@@ -381,12 +382,12 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bool showResults = _estimatedValue != null;
-    final bool hasInput = _searchController.text.trim().isNotEmpty;
+    final showResults = _estimatedValue != null;
+    final hasInput = _searchController.text.trim().isNotEmpty;
     
     // Very dark emerald background color matching the image
-    const Color bgColor = Color(0xFF041510);
-    const Color brandGreen = Color(0xFF34d399); // Bright green
+    const bgColor = Color(0xFF041510);
+    const brandGreen = Color(0xFF34d399); // Bright green
     
     return Scaffold(
       backgroundColor: bgColor,
@@ -395,7 +396,6 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
           opacity: _fadeAnimation,
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 16),
                 
@@ -411,7 +411,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                         border: Border.all(color: brandGreen.withValues(alpha: 0.3)),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Icon(Icons.bar_chart, color: brandGreen, size: 16),
+                      child: const Icon(Icons.bar_chart, color: brandGreen, size: 16),
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -439,7 +439,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.auto_awesome, color: brandGreen, size: 14),
+                      const Icon(Icons.auto_awesome, color: brandGreen, size: 14),
                       const SizedBox(width: 8),
                       Text(
                         'STEP 1 - SELECT ARTIST',
@@ -459,7 +459,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                 // Hero Text
                 Text.rich(
                   TextSpan(
-                    text: 'What\'s Your\n',
+                    text: "What's Your\n",
                     style: GoogleFonts.outfit(
                       fontSize: 42,
                       fontWeight: FontWeight.w900,
@@ -527,7 +527,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                               hintText: 'Search artist...',
                               hintStyle: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3)),
                               prefixIcon: const Padding(
-                                padding: EdgeInsets.all(18.0),
+                                padding: EdgeInsets.all(18),
                                 child: Icon(Icons.search, color: Colors.white54, size: 22),
                               ),
                               border: InputBorder.none,
@@ -643,19 +643,19 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
   }
 
   String _getPlatformName() {
-    List<String> selected = [];
+    final selected = <String>[];
     if (_platforms['spotify'] == true) selected.add('SPOTIFY');
     if (_platforms['apple'] == true) selected.add('APPLE MUSIC');
     if (_platforms['youtube'] == true) selected.add('YOUTUBE');
     
-    if (selected.length == 3) return "ALL PLATFORMS";
-    return selected.join(" & ");
+    if (selected.length == 3) return 'ALL PLATFORMS';
+    return selected.join(' & ');
   }
 
   String _getNoteText() {
-    int count = _platforms.values.where((v) => v).length;
+    final var count = _platforms.values.where((v) => v).length;
     if (count == 1) {
-      String name = _platforms.keys.firstWhere((k) => _platforms[k] == true);
+      var name = _platforms.keys.firstWhere((k) => _platforms[k] == true);
       name = name == 'apple' ? 'Apple Music' : (name == 'youtube' ? 'YouTube' : 'Spotify');
       return 'Note: This is your catalog valuation calculated for $name only.';
     }
@@ -857,7 +857,7 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                                   ),
                                   onChanged: (value) {
                                     if (value.isNotEmpty) {
-                                      double? parsed = double.tryParse(value);
+                                      final var parsed = double.tryParse(value);
                                       if (parsed != null) setState(() => _royaltyShare = parsed);
                                     }
                                   },
@@ -925,13 +925,13 @@ class _SearchArtistScreenState extends State<SearchArtistScreen>
                           dropdownColor: const Color(0xFF081F17),
                           icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.5)),
                           style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-                          onChanged: (String? newValue) {
+                          onChanged: (newValue) {
                             if (newValue != null) {
                               setState(() => _currency = newValue);
                             }
                           },
                           items: _exchangeRates.keys.toList()
-                              .map<DropdownMenuItem<String>>((String value) {
+                              .map<DropdownMenuItem<String>>((value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),
