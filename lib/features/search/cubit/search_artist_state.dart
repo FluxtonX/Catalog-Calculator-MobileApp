@@ -1,3 +1,4 @@
+import '../../dashboard/models/valuation_models.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class SearchArtistState extends Equatable {
@@ -11,23 +12,24 @@ class SearchArtistInitial extends SearchArtistState {}
 
 class SearchArtistLoading extends SearchArtistState {}
 
+
 class SearchArtistLoaded extends SearchArtistState {
   const SearchArtistLoaded({
-    required this.estimatedValue,
     required this.valuationData,
     required this.artistData,
     this.youtubeData,
     this.appleData,
+    this.selectedPlatforms = const {'spotify': true, 'youtube': true, 'apple': true},
   });
 
-  final double estimatedValue;
-  final Map<String, dynamic> valuationData;
-  final Map<String, dynamic> artistData;
-  final Map<String, dynamic>? youtubeData;
-  final Map<String, dynamic>? appleData;
+  final ValuationDataModel valuationData;
+  final ArtistProfileModel artistData;
+  final YouTubeProfileModel? youtubeData;
+  final AppleProfileModel? appleData;
+  final Map<String, bool> selectedPlatforms;
 
   @override
-  List<Object?> get props => [estimatedValue, valuationData, artistData, youtubeData, appleData];
+  List<Object?> get props => [valuationData, artistData, youtubeData, appleData, selectedPlatforms];
 }
 
 class SearchArtistError extends SearchArtistState {

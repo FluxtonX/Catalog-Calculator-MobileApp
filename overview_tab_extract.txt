@@ -1,0 +1,702 @@
+Widget _buildOverviewTab(double estimatedValue, Map<String, dynamic> valuationData, Map<String, dynamic> artistData, Map<String, dynamic>? youtubeData, Map<String, dynamic>? appleData) {
+    final streamingRevenue = _parseNum(valuationData['annualRevenue']).toDouble();
+    
+    int totalFollowers = 0;
+    if (artistData['followers'] is Map) {
+      totalFollowers += _parseNum(((artistData['followers'] as Map)['total'])).toInt();
+    }
+    
+    int totalSubscribers = 0;
+    int totalViews = 0;
+    if (youtubeData != null && youtubeData['channels'] != null && (youtubeData['channels'] as List).isNotEmpty) {
+      final stats = ((youtubeData['channels'] as List)[0] as Map)['statistics'] as Map?;
+      if (stats != null) {
+        totalSubscribers += int.tryParse(stats['subscriberCount']?.toString() ?? '0') ?? 0;
+        totalViews += int.tryParse(stats['viewCount']?.toString() ?? '0') ?? 0;
+      }
+    }
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF10b981), Color(0xFF047857)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF10b981).withValues(alpha: 0.3),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.bar_chart, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'MASTER CATALOG VALUATION',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _formatCurrency(estimatedValue),
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Est. Annual Rev',
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatCurrency(streamingRevenue),
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'CFA Multiple',
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '8.0x',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Conservative (6x)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(_formatCurrency(_parseNum(valuationData['lowEstimate']).toDouble()), style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Premium (10x)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(_formatCurrency(_parseNum(valuationData['highEstimate']).toDouble()), style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'THIS ESTIMATE IS AN INDICATION BASED ON YOUR TOP TRACKS\nSPOTIFY + APPLE MUSIC + YOUTUBE @ 100% ROYALTY SHARE',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          if (valuationData['breakdown'] != null && (valuationData['breakdown'] as Map).isNotEmpty) ...[
+            Text(
+              'Platform Breakdown',
+              style: GoogleFonts.outfit(
+                color: const Color(0xFF10b981),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...((valuationData['breakdown'] as Map).entries.map((e) {
+              final platform = e.key;
+              final data = e.value as Map;
+              final label = platform == 'spotify' || platform == 'apify' ? 'Spotify' : platform == 'itunes' || platform == 'apple' ? 'Apple Music' : 'YouTube';
+              final icon = platform == 'spotify' || platform == 'apify' ? Icons.graphic_eq : platform == 'itunes' || platform == 'apple' ? Icons.music_note : Icons.smart_display;
+              final color = platform == 'spotify' || platform == 'apify' ? const Color(0xFF1DB954) : platform == 'itunes' || platform == 'apple' ? Colors.white : const Color(0xFFFF0000);
+              
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(label, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text('Est. LTM: ${_formatCurrency(_parseNum(data['totalAnnualRevenue']).toDouble())}', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(_formatCurrency(_parseNum(data['midEstimate']).toDouble()), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('8x Multiple'.toUpperCase(), style: GoogleFonts.inter(color: Colors.white38, fontSize: 10, letterSpacing: 0.5)),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            })),
+            const SizedBox(height: 24),
+          ],
+          
+          // --- DATA FROM SPOTIFY ---
+          _buildPlatformDataCard(
+            platformName: 'SPOTIFY',
+            popularity: _parseNum(artistData['popularity']).toString(),
+            metric1Value: _formatNumber(_parseNum(artistData['monthlyListeners']).toDouble()),
+            metric1Label: 'MONTHLY LISTENERS',
+            metric2Value: _formatNumber(totalFollowers.toDouble()),
+            metric2Label: 'TOTAL FOLLOWERS',
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // --- DATA FROM YOUTUBE ---
+          if (youtubeData != null)
+            _buildPlatformDataCard(
+              platformName: 'YOUTUBE',
+              popularity: _parseNum(youtubeData['popularity'] ?? 75).toString(), // Mocked or real popularity for YT
+              metric1Value: _formatNumber(totalViews.toDouble()),
+              metric1Label: 'TOTAL VIEWS',
+              metric2Value: _formatNumber(totalSubscribers.toDouble()),
+              metric2Label: 'SUBSCRIBERS',
+            ),
+            
+          if (youtubeData != null) const SizedBox(height: 24),
+          
+          // --- BIOGRAPHY ---
+          if (artistData['biography'] != null || (artistData['bio'] != null)) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: Colors.white54, size: 18),
+                      const SizedBox(width: 8),
+                      Text('BIOGRAPHY', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ExpandableBio(text: (artistData['biography'] ?? artistData['bio'] ?? '').toString()),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+          
+          // --- AVERAGE CATALOG AGE ---
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Average Catalog Age', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1DB954).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '\ Yrs',
+                        style: GoogleFonts.outfit(color: const Color(0xFF1DB954), fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text('The weighted average of individual track ages from release date.', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // --- STREAMING STATS ---
+          Text(
+            'Streaming Stats',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF10b981),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildSocialCard('Spotify Playlists', _formatNumber(_extractStat(artistData, ['sp_playlists', 'playlistCount'])), Icons.queue_music),
+                const SizedBox(width: 12),
+                _buildSocialCard('Playlist Reach', _formatNumber(_extractStat(artistData, ['sp_playlist_total_reach'])), Icons.cell_tower),
+                const SizedBox(width: 12),
+                _buildSocialCard('Pandora Streams', _formatNumber(_extractStat(artistData, ['pandora_streams'])), Icons.graphic_eq),
+                const SizedBox(width: 12),
+                _buildSocialCard('Shazam Count', _formatNumber(_extractStat(artistData, ['shazam_count'])), Icons.album),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // --- TOP TRACKS ANALYSIS ---
+          Text(
+            'Top Tracks Analysis',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF10b981),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          if (valuationData['breakdown'] != null)
+            ...((valuationData['breakdown'] as Map).entries.map((e) {
+              final platform = e.key;
+              final data = e.value as Map;
+              if (data['trackDetails'] == null || (data['trackDetails'] as List).isEmpty) return const SizedBox.shrink();
+              
+              final label = platform == 'spotify' || platform == 'apify' ? 'Spotify Top Tracks' : platform == 'itunes' || platform == 'apple' ? 'Apple Music Top Tracks' : 'YouTube Top Videos';
+              final color = platform == 'spotify' || platform == 'apify' ? const Color(0xFF1DB954) : platform == 'itunes' || platform == 'apple' ? Colors.white : const Color(0xFFFF0000);
+              
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: _buildTopTracksList(
+                  title: label,
+                  tracks: data['trackDetails'] as List,
+                  color: color,
+                ),
+              );
+            })),
+            
+          if (youtubeData != null && (valuationData['breakdown']?['youtube']?['trackDetails'] == null || (valuationData['breakdown']['youtube']['trackDetails'] as List).isEmpty))
+            ...(() {
+              List ytTracks = [];
+              if (youtubeData['videos'] != null && (youtubeData['videos'] as List).isNotEmpty) {
+                ytTracks = youtubeData['videos'] as List;
+              } else if (youtubeData['channels'] != null && (youtubeData['channels'] as List).isNotEmpty) {
+                final stats = ((youtubeData['channels'] as List)[0] as Map)['statistics'] as Map?;
+                if (stats != null) {
+                  ytTracks = [
+                    {'title': 'Total Channel Views', 'viewCountFormatted': _formatNumber(double.tryParse(stats['viewCount']?.toString() ?? '0') ?? 0)},
+                    {'title': 'Total Subscribers', 'viewCountFormatted': _formatNumber(double.tryParse(stats['subscriberCount']?.toString() ?? '0') ?? 0)},
+                    {'title': 'Total Videos', 'viewCountFormatted': _formatNumber(double.tryParse(stats['videoCount']?.toString() ?? '0') ?? 0)},
+                  ];
+                }
+              }
+              if (ytTracks.isNotEmpty) {
+                return [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: _buildTopTracksList(
+                      title: 'YouTube Top Videos',
+                      tracks: ytTracks,
+                      color: const Color(0xFFFF0000),
+                    ),
+                  )
+                ];
+              }
+              return <Widget>[];
+            })(),
+            
+          if (appleData != null && appleData['topTracks'] != null && (appleData['topTracks'] as List).isNotEmpty && (valuationData['breakdown']?['itunes']?['trackDetails'] == null || (valuationData['breakdown']['itunes']['trackDetails'] as List).isEmpty))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _buildTopTracksList(
+                title: 'Apple Music Top Tracks',
+                tracks: appleData['topTracks'] as List,
+                color: const Color(0xFFFA243C),
+              ),
+            ),
+            
+          const SizedBox(height: 8),
+          
+          Text(
+            'Global Analytics',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF10b981),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          _buildMostPopularTrackCard(artistData),
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(child: _buildMetricCard('Rank', _extractChartmetricRank(artistData).toString(), Icons.trending_up)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildMetricCard('Monthly Listeners', _formatNumber(_extractMonthlyListeners(artistData).toDouble()), Icons.graphic_eq)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildMetricCard('Playlists', _formatNumber(_extractPlaylistCount(artistData).toDouble()), Icons.playlist_add_check)),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // --- NEW: QUICK SOCIAL STATS ---
+          Text(
+            'Quick Social Stats',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF10b981),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildSocialCard('Radio Spins', _formatNumber(_extractStat(artistData, ['radio_spins'])), Icons.radio),
+                const SizedBox(width: 12),
+                _buildSocialCard('IG Followers', _formatNumber(_extractStat(artistData, ['ig_followers', 'instagramFollowers'])), Icons.camera_alt),
+                const SizedBox(width: 12),
+                _buildSocialCard('TikTok Followers', _formatNumber(_extractStat(artistData, ['tiktok_followers', 'tiktokFollowers'])), Icons.music_video),
+                const SizedBox(width: 12),
+                _buildSocialCard('Spotify Followers', _formatNumber(totalFollowers.toDouble()), Icons.headset),
+                const SizedBox(width: 12),
+                _buildSocialCard('YouTube Subs', _formatNumber(totalSubscribers.toDouble()), Icons.smart_display),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMostPopularTrackCard(Map<String, dynamic> artistData) {
+    String trackName = 'Unknown Track';
+    double streams = 0;
+    String? imageUrl;
+    
+    // Find most popular track
+    if (artistData['topTracks'] != null && (artistData['topTracks'] as List).isNotEmpty) {
+      final track = (artistData['topTracks'] as List).first as Map;
+      trackName = track['title'] ?? track['name'] ?? 'Unknown Track';
+      streams = _parseNum(track['streamCount']).toDouble();
+      if (streams == 0) streams = _parseNum(track['playcount']).toDouble();
+      imageUrl = track['thumbnail'] ?? track['artwork'] ?? (artistData['images'] != null && (artistData['images'] as List).isNotEmpty ? ((artistData['images'] as List)[0] as Map)['url'] : null);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          if (imageUrl != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(imageUrl, width: 64, height: 64, fit: BoxFit.cover),
+            )
+          else
+            Container(width: 64, height: 64, decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(12))),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('MOST POPULAR TRACK', style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(trackName, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.play_circle_fill, color: Color(0xFF1DB954), size: 16),
+                    const SizedBox(width: 4),
+                    Text('${_formatNumber(streams)} Streams', style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlatformDataCard({
+    required String platformName,
+    required String popularity,
+    required String metric1Value,
+    required String metric1Label,
+    required String metric2Value,
+    required String metric2Label,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(top: 32, bottom: 24, left: 16, right: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    const Icon(Icons.emoji_events, color: Colors.blueAccent, size: 24),
+                    const SizedBox(height: 12),
+                    Text(popularity, style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text('POPULARITY SCORE', textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 60, color: Colors.white10),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Icon(Icons.sensors, color: Color(0xFF1DB954), size: 24),
+                    const SizedBox(height: 12),
+                    Text(metric1Value, style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(metric1Label, textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 60, color: Colors.white10),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Icon(Icons.people, color: Color(0xFF1DB954), size: 24),
+                    const SizedBox(height: 12),
+                    Text(metric2Value, style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 4),
+                    Text(metric2Label, textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: -12,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1e293b),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Text(
+                'DATA FROM $platformName',
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFF10b981), size: 24),
+          const SizedBox(height: 12),
+          Text(value, style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 4),
+          Text(label.toUpperCase(), textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialCard(String label, String value, IconData icon) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Text(label.toUpperCase(), style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white70, size: 18),
+              const SizedBox(width: 6),
+              Text(value, style: GoogleFonts.outfit(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _extractStat(Map<String, dynamic> artistData, List<String> keys) {
+    final stats = artistData['stats'] as Map?;
+    for (final key in keys) {
+      if (stats != null && stats[key] != null) return _parseNum(stats[key]).toDouble();
+      if (artistData[key] != null) return _parseNum(artistData[key]).toDouble();
+    }
+    return 0;
+  }
+  
+  int _extractChartmetricRank(Map<String, dynamic> artistData) {
+    final stats = artistData['stats'] as Map?;
+    return _parseNum(artistData['chartmetricRank'] ?? stats?['cm_artist_rank'] ?? stats?['chartmetricRank'] ?? stats?['rank']).toInt();
+  }
+  
+  int _extractPlaylistCount(Map<String, dynamic> artistData) {
+    final stats = artistData['stats'] as Map?;
+    return _parseNum(artistData['sp_playlists'] ?? stats?['sp_playlists'] ?? stats?['playlistCount']).toInt();
+  }
+  
+  int _extractMonthlyListeners(Map<String, dynamic> artistData) {
+    return _parseNum(artistData['monthlyListeners'] ?? artistData['stats']?['monthlyListeners']).toInt();
+  }
+  
+  num _parseNum(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value;
+    if (value is String) {
+      // Remove any commas or text that might break parsing
+      final cleanStr = value.replaceAll(RegExp(r'[^0-9.-]'), '');
+      return num.tryParse(cleanStr) ?? 0;
+    }
+    return 0;
+  }
+
+  

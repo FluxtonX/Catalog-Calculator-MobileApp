@@ -15,14 +15,15 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF041510);
-    const brandGreen = Color(0xFF34d399);
+    const bgColor = Color(0xFF0F172A);
+    const brandGreen = Color(0xFF10B981);
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
+        elevation: 0,
         title: Text(
           'Profile',
           style: GoogleFonts.outfit(

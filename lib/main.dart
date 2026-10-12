@@ -1,9 +1,13 @@
 import 'package:catalog_calculator_flutter/screens/auth_screen.dart';
 import 'package:catalog_calculator_flutter/screens/onboarding_screen.dart';
 import 'package:catalog_calculator_flutter/screens/search_artist_screen.dart';
+import 'package:catalog_calculator_flutter/screens/main_navigation_screen.dart';
 import 'package:catalog_calculator_flutter/screens/splash_screen.dart';
 import 'package:catalog_calculator_flutter/screens/valuation_dashboard_screen.dart';
+import 'package:catalog_calculator_flutter/screens/artist_valuation_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_cubit.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -44,20 +48,37 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
+      path: '/home',
+      builder: (context, state) => const MainNavigationScreen(),
+    ),
+    GoRoute(
       path: '/search',
       builder: (context, state) => const SearchArtistScreen(),
     ),
     GoRoute(
-      path: '/dashboard',
-      builder: (context, state) => const ValuationDashboardScreen(
-        platform: 'spotify',
-        query: '',
+      path: '/valuation',
+      builder: (context, state) {
+        final query = state.uri.queryParameters['query'];
+        final artistId = state.uri.queryParameters['artistId'];
+        return ArtistValuationScreen(
+          query: query,
+          artistId: artistId,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/valuation/:query',
+      builder: (context, state) => ArtistValuationScreen(
+        query: state.pathParameters['query'] ?? '',
       ),
     ),
     GoRoute(
+      path: '/dashboard',
+      builder: (context, state) => const ArtistValuationScreen(),
+    ),
+    GoRoute(
       path: '/dashboard/:platform/:query',
-      builder: (context, state) => ValuationDashboardScreen(
-        platform: state.pathParameters['platform'] ?? 'spotify',
+      builder: (context, state) => ArtistValuationScreen(
         query: state.pathParameters['query'] ?? '',
       ),
     ),
@@ -73,9 +94,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Catalog Calculator',
-      debugShowCheckedModeBanner: false,
+    return BlocProvider(
+      create: (context) => SearchArtistCubit(),
+      child: MaterialApp.router(
+        title: 'Catalog Calculator',
+        debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF09090b), // zinc-950
         colorScheme: const ColorScheme.dark(
@@ -85,6 +108,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       routerConfig: _router,
+      ),
     );
   }
 }

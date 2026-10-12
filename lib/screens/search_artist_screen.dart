@@ -5,21 +5,22 @@ import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_c
 import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../features/dashboard/models/valuation_models.dart';
+import 'artist_valuation_screen.dart';
 
 class SearchArtistScreen extends StatelessWidget {
   const SearchArtistScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SearchArtistCubit(),
-      child: const SearchArtistView(),
-    );
+    return const SearchArtistView();
   }
 }
 
@@ -69,6 +70,83 @@ class _SearchArtistViewState extends State<SearchArtistView>
     'HKD': 7.82,
   };
 
+  bool _isSigningInWithGoogle = false;
+
+  Future<void> _handleGoogleSignInAndProceed() async {
+    setState(() => _isSigningInWithGoogle = true);
+
+    try {
+      const webClientId = '660487613110-68oirrtmp57ovl0gbikcmbdthdv2g5a3.apps.googleusercontent.com';
+      const iosClientId = '660487613110-mf4qoet2e6ac1s7ov18m4h1e98n4bq4a.apps.googleusercontent.com';
+
+      final googleSignIn = GoogleSignIn(
+        clientId: Platform.isIOS ? iosClientId : null,
+        serverClientId: webClientId,
+      );
+
+      // Ensure fresh Google account selection prompt every time
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled login dialog
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null || idToken == null) {
+        throw 'No Auth Token found.';
+      }
+
+      await Supabase.instance.client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_search_query', _searchController.text);
+      await prefs.setString(
+        'last_search_platform',
+        _platforms.keys.firstWhere((k) => _platforms[k] == true, orElse: () => 'spotify'),
+      );
+
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ArtistValuationScreen(
+              query: _searchController.text,
+              selectedPlatforms: _platforms,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign in failed: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.redAccent,
+            action: SnackBarAction(
+              label: 'Email Login',
+              textColor: Colors.amber,
+              onPressed: () => context.push('/login'),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningInWithGoogle = false);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -101,7 +179,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
   }
 
 
-  Future<void> _handleCalculate([String? overrideQuery]) async {
+  Future<void> _handleCalculate([String? overrideQuery, bool pushScreen = false]) async {
     final query = (overrideQuery ?? _searchController.text).trim();
     if (query.isEmpty) return;
     
@@ -115,6 +193,17 @@ class _SearchArtistViewState extends State<SearchArtistView>
       query: query,
       platforms: _platforms,
     );
+
+    if (pushScreen && mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ArtistValuationScreen(
+            query: query,
+            selectedPlatforms: _platforms,
+          ),
+        ),
+      );
+    }
   }
 
   String _formatLocalCurrency(double value) {
@@ -228,7 +317,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
       builder: (context, state) {
         final isSearching = state is SearchArtistLoading;
         final errorMessage = state is SearchArtistError ? state.message : null;
-        final estimatedValue = state is SearchArtistLoaded ? state.estimatedValue : null;
+        final estimatedValue = state is SearchArtistLoaded ? state.valuationData.estimatedValue : null;
         final artistData = state is SearchArtistLoaded ? state.artistData : null;
 
         final showResults = estimatedValue != null;
@@ -386,7 +475,46 @@ class _SearchArtistViewState extends State<SearchArtistView>
                           ),
                         ),
                         
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 14),
+
+                        // Suggested Artists
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: [
+                              for (final artist in const [
+                                'Bad Bunny',
+                                'Taylor Swift',
+                                'Drake',
+                                'The Weeknd',
+                                'Ariana Grande'
+                              ])
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ActionChip(
+                                    label: Text(artist),
+                                    avatar: const Icon(Icons.trending_up, size: 14, color: Color(0xFF34D399)),
+                                    backgroundColor: const Color(0xFF041510),
+                                    side: BorderSide(color: brandGreen.withValues(alpha: 0.25)),
+                                    labelStyle: GoogleFonts.inter(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    onPressed: () {
+                                      _searchController.text = artist;
+                                      setState(() {});
+                                      _handleCalculate(artist, true);
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
                         
                         Text(
                           'DATA SOURCES',
@@ -513,13 +641,13 @@ class _SearchArtistViewState extends State<SearchArtistView>
     return 'Note: This is your catalog valuation calculated across combined platforms.';
   }
 
-  Widget _buildResultsSection(Color brandGreen, double? estimatedValue, Map<String, dynamic>? artistData) {
+  Widget _buildResultsSection(Color brandGreen, double? estimatedValue, ArtistProfileModel? artistData) {
     if (estimatedValue == null) return const SizedBox.shrink();
     
-    final artistName = artistData?['name'] ?? _searchController.text;
-    String? imageUrl;
-    if (artistData != null && artistData['images'] != null && (artistData['images'] as List).isNotEmpty) {
-      imageUrl = artistData['images'][0]['url'] as String?;
+    final artistName = artistData?.title ?? _searchController.text;
+    String? imageUrl = artistData?.imageUrl;
+    if (imageUrl != null && imageUrl.isEmpty) {
+      imageUrl = null;
     }
 
     return Padding(
@@ -797,76 +925,88 @@ class _SearchArtistViewState extends State<SearchArtistView>
             ),
           ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
 
-          Text(
-            'Want to see the more detailed valuation report? Please login.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 20),
+          // 1. Sign in with Google Button (Matching Screenshot 2)
           GestureDetector(
-            onTap: () async {
-              await Supabase.instance.client.auth.signOut();
-              try { await GoogleSignIn().signOut(); } catch(e) {}
-              
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('last_search_query', _searchController.text);
-              await prefs.setString('last_search_platform', _platforms.keys.firstWhere((k) => _platforms[k] == true, orElse: () => 'spotify'));
-              if (mounted) {
-                context.push('/login');
-              }
-            },
+            onTap: _isSigningInWithGoogle ? null : _handleGoogleSignInAndProceed,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.login, color: Colors.black87, size: 20),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      'Login to see detailed report',
-                      style: GoogleFonts.inter(
-                        color: Colors.black87,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                  if (_isSigningInWithGoogle)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF1E293B),
                       ),
-                      overflow: TextOverflow.ellipsis,
+                    )
+                  else
+                    SvgPicture.string(
+                      '''<svg width="20" height="20" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>''',
+                      width: 20,
+                      height: 20,
+                    ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Sign in with Google',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFF1E293B),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          
-          const SizedBox(height: 16),
-          
+
+          const SizedBox(height: 14),
+
+          // 2. Sell Your Catalog Now Button (Matching Screenshot 2)
           GestureDetector(
             onTap: () async {
-              await Supabase.instance.client.auth.signOut();
-              try { await GoogleSignIn().signOut(); } catch(e) {}
-              
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('last_search_query', _searchController.text);
-              await prefs.setString('last_search_platform', _platforms.keys.firstWhere((k) => _platforms[k] == true, orElse: () => 'spotify'));
-              if (mounted) {
-                context.push('/login');
+              final uri = Uri.parse('https://www.creativefundingagency.com/application');
+              try {
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  await launchUrl(uri);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not open application link: $e'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
               }
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFC29C5B), Color(0xFFA27A3F)],
@@ -875,10 +1015,10 @@ class _SearchArtistViewState extends State<SearchArtistView>
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFFC29C5B).withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   )
-                ]
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

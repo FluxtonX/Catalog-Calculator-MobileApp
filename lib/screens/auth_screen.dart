@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_cubit.dart';
+import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -30,15 +33,20 @@ class _AuthScreenState extends State<AuthScreen> {
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       final session = data.session;
       if (session != null && mounted) {
-        final prefs = await SharedPreferences.getInstance();
-        final lastQuery = prefs.getString('last_search_query') ?? '';
-        final lastPlatform = prefs.getString('last_search_platform') ?? 'spotify';
-        
-        if (lastQuery.isNotEmpty) {
-          final encodedQuery = Uri.encodeComponent(lastQuery);
-          if (mounted) context.go('/dashboard/$lastPlatform/$encodedQuery');
+        final searchState = context.read<SearchArtistCubit>().state;
+        if (searchState is SearchArtistLoaded) {
+          // Scenario A: Artist already loaded before authentication
+          if (mounted) context.go('/valuation');
         } else {
-          if (mounted) context.go('/search');
+          final prefs = await SharedPreferences.getInstance();
+          final lastQuery = prefs.getString('last_search_query') ?? '';
+          if (lastQuery.isNotEmpty) {
+            final encodedQuery = Uri.encodeComponent(lastQuery);
+            if (mounted) context.go('/valuation?query=$encodedQuery');
+          } else {
+            // Scenario B: No active artist selected, navigate to search screen
+            if (mounted) context.go('/search');
+          }
         }
       }
     });
