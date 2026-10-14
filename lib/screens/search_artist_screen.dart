@@ -33,6 +33,8 @@ class SearchArtistView extends StatefulWidget {
 
 class _SearchArtistViewState extends State<SearchArtistView>
     with SingleTickerProviderStateMixin {
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultsKey = GlobalKey();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _royaltyController = TextEditingController(text: '100');
   late AnimationController _fadeController;
@@ -161,8 +163,50 @@ class _SearchArtistViewState extends State<SearchArtistView>
     _fadeController.forward();
   }
 
+  void _scrollToResults() {
+    if (!mounted) return;
+    FocusScope.of(context).unfocus();
+
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      _performScroll();
+    });
+  }
+
+  void _performScroll() {
+    if (!mounted || !_scrollController.hasClients) return;
+    
+    try {
+      final renderBox = _resultsKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+        final targetOffset = _scrollController.offset + position.dy - 16.0;
+        final clampedOffset = targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
+        
+        _scrollController.animateTo(
+          clampedOffset,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeInOutCubic,
+        );
+        return;
+      }
+    } catch (_) {}
+
+    if (_scrollController.hasClients && _scrollController.position.maxScrollExtent > 0) {
+      final fallbackOffset = (_scrollController.position.maxScrollExtent > 650.0) 
+          ? 650.0 
+          : _scrollController.position.maxScrollExtent;
+      _scrollController.animateTo(
+        fallbackOffset,
+        duration: const Duration(milliseconds: 650),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.dispose();
     _searchController.dispose();
     _fadeController.dispose();
     super.dispose();
@@ -193,6 +237,10 @@ class _SearchArtistViewState extends State<SearchArtistView>
       query: query,
       platforms: _platforms,
     );
+
+    if (mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
+      _scrollToResults();
+    }
 
     if (pushScreen && mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
       Navigator.of(context).push(
@@ -313,7 +361,12 @@ class _SearchArtistViewState extends State<SearchArtistView>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SearchArtistCubit, SearchArtistState>(
+    return BlocConsumer<SearchArtistCubit, SearchArtistState>(
+      listener: (context, state) {
+        if (state is SearchArtistLoaded) {
+          _scrollToResults();
+        }
+      },
       builder: (context, state) {
         final isSearching = state is SearchArtistLoading;
         final errorMessage = state is SearchArtistError ? state.message : null;
@@ -333,6 +386,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: SingleChildScrollView(
+            controller: _scrollController,
             child: Column(
               children: [
                 const SizedBox(height: 16),
@@ -571,13 +625,13 @@ class _SearchArtistViewState extends State<SearchArtistView>
                                   )
                                 else
                                   Icon(
-                                    Icons.calculate, 
+                                    showResults ? Icons.arrow_downward : Icons.calculate, 
                                     color: hasInput ? brandGreen : Colors.white24, 
                                     size: 20
                                   ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  isSearching ? 'Calculating...' : 'Calculate Valuation',
+                                  isSearching ? 'Calculating...' : (showResults ? 'View Results ↓' : 'Calculate Valuation'),
                                   style: GoogleFonts.inter(
                                     color: hasInput ? brandGreen : Colors.white24,
                                     fontSize: 16,
@@ -604,13 +658,10 @@ class _SearchArtistViewState extends State<SearchArtistView>
                   ),
 
                 // Expanding Results Section
-                AnimatedCrossFade(
-                  firstChild: const SizedBox(height: 40, width: double.infinity),
-                  secondChild: _buildResultsSection(brandGreen, estimatedValue, artistData),
-                  crossFadeState: showResults ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 600),
-                  sizeCurve: Curves.easeInOut,
-                ),
+                if (showResults)
+                  _buildResultsSection(brandGreen, estimatedValue, artistData)
+                else
+                  const SizedBox(height: 40),
               ],
             ),
           ),
@@ -651,6 +702,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
     }
 
     return Padding(
+      key: _resultsKey,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       child: Column(
         children: [
