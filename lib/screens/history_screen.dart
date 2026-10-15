@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
 import 'artist_valuation_screen.dart';
 
@@ -46,8 +47,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0F172A);
-    const brandGreen = Color(0xFF10B981);
+    final bgColor = AppTheme.scaffoldBackground;
+    const brandGreen = AppTheme.primaryGreen;
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
@@ -57,7 +58,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         elevation: 0,
         title: Text(
           'Valuation History',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -88,11 +89,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.lock_outline, color: Color(0xFF00E5FF), size: 54),
+            const Icon(Icons.lock_outline, color: AppTheme.brandCyan, size: 54),
             const SizedBox(height: 16),
             Text(
               'Sign In to View History',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -102,7 +103,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Text(
               'Your computed valuations and bookmarked catalog reports will automatically sync across your devices.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: Colors.white60, fontSize: 13, height: 1.5),
+              style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
             ),
           ],
         ),
@@ -128,7 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(height: 20),
             Text(
               'No Valuations Yet',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -139,7 +140,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               'Search an artist and calculate their catalog valuation to save reports here.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                color: Colors.white60,
+                color: AppTheme.textSecondary,
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -153,25 +154,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildReportsList() {
     return RefreshIndicator(
       onRefresh: _loadReports,
-      color: const Color(0xFF10B981),
+      color: AppTheme.primaryGreen,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         itemCount: _reports.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final r = _reports[index];
-          final artistName = r['artist_name'] ?? 'Unknown Artist';
-          final platform = r['platform'] ?? 'spotify';
+          final artistName = (r['artist_name'] as String?) ?? 'Unknown Artist';
+          final platform = (r['platform'] as String?) ?? 'spotify';
           final value = Formatters.parseNum(r['estimated_value']).toDouble();
 
-          Color platformColor = const Color(0xFF1DB954);
-          if (platform == 'youtube') platformColor = const Color(0xFFFF0000);
-          if (platform == 'apple' || platform == 'itunes') platformColor = const Color(0xFFFA243C);
+          Color platformColor = AppTheme.spotifyGreen;
+          if (platform == 'youtube') platformColor = AppTheme.youtubeRed;
+          if (platform == 'apple' || platform == 'itunes') platformColor = AppTheme.appleRed;
 
           return InkWell(
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => ArtistValuationScreen(query: artistName),
                 ),
               );
@@ -180,9 +181,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: AppTheme.cardBackground,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                border: Border.all(color: AppTheme.borderColor),
               ),
               child: Row(
                 children: [
@@ -236,7 +237,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     children: [
                       Text(
                         Formatters.formatCurrency(value),
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.inter(
                           color: const Color(0xFF00E5FF),
                           fontSize: 16,
                           fontWeight: FontWeight.w800,

@@ -37,7 +37,7 @@ class _DashboardView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
-        title: Text('Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+        title: Text('Dashboard', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -81,7 +81,7 @@ class _DashboardView extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             'Your Catalog',
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.inter(
                               color: Colors.white,
                               fontSize: 32,
                               fontWeight: FontWeight.w800,
@@ -222,7 +222,7 @@ class _DashboardView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 28,
               fontWeight: FontWeight.w800,
@@ -294,7 +294,7 @@ class _DashboardView extends StatelessWidget {
                 ),
                 Text(
                   _formatCurrency(report.estimatedValue),
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.inter(
                     color: AppTheme.brandGreen,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,

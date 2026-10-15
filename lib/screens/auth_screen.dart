@@ -10,6 +10,7 @@ import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_s
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -149,7 +150,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF041510), // Deep emerald to match app theme
+      backgroundColor: AppTheme.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -165,52 +166,53 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 // Logo & Title
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 76,
+                  height: 76,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF041510),
-                    border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.3), width: 2),
+                    color: AppTheme.cardBackground,
+                    border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.35), width: 1.5),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF34d399).withValues(alpha: 0.15),
-                        blurRadius: 30,
-                        spreadRadius: 5,
+                        color: AppTheme.brandCyan.withValues(alpha: 0.15),
+                        blurRadius: 28,
+                        spreadRadius: 4,
                       )
-                    ]
+                    ],
                   ),
                   child: Image.asset(
                     'assets/images/logo.png',
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.bar_chart_rounded, size: 40, color: Color(0xFF34d399));
+                      return const Icon(Icons.calculate, size: 38, color: AppTheme.brandCyan);
                     },
                   ),
                 ),
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 
                 Text(
                   'Welcome Back',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.inter(
                     color: Colors.white,
-                    fontSize: 32,
+                    fontSize: 30,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign in to access catalog valuations',
                   style: GoogleFonts.inter(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 16,
+                    color: AppTheme.textSecondary,
+                    fontSize: 15,
                   ),
                 ),
                 
-                const SizedBox(height: 48),
+                const SizedBox(height: 36),
 
                 if (_errorMessage != null)
                   Container(
@@ -235,13 +237,20 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
 
-                // Main Auth Box
+                // Main Auth Box (Web Card: #0B101A with border #1A2333)
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF081F17),
-                    border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.15)),
+                    color: AppTheme.cardBackground,
+                    border: Border.all(color: AppTheme.borderColor),
                     borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
@@ -253,7 +262,14 @@ class _AuthScreenState extends State<AuthScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              )
+                            ],
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -274,7 +290,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 'Continue with Google',
                                 style: GoogleFonts.inter(
                                   color: Colors.black87,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -283,7 +299,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
                       
                       // Divider
                       Row(
@@ -294,9 +310,10 @@ class _AuthScreenState extends State<AuthScreen> {
                             child: Text(
                               'OR',
                               style: GoogleFonts.inter(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
                               ),
                             ),
                           ),
@@ -304,20 +321,20 @@ class _AuthScreenState extends State<AuthScreen> {
                         ],
                       ),
                       
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
 
                       // Email Form
                       if (_emailSent)
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF34d399).withValues(alpha: 0.1),
-                            border: Border.all(color: const Color(0xFF34d399).withValues(alpha: 0.3)),
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                            border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
                             children: [
-                              const Icon(Icons.check_circle_outline, color: Color(0xFF34d399), size: 48),
+                              const Icon(Icons.check_circle_outline, color: AppTheme.primaryGreen, size: 48),
                               const SizedBox(height: 16),
                               Text(
                                 'Check your email!',
@@ -337,7 +354,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 }),
                                 child: Text(
                                   'Use a different email',
-                                  style: GoogleFonts.inter(color: const Color(0xFF34d399), fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.inter(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold),
                                 ),
                               )
                             ],
@@ -348,13 +365,13 @@ class _AuthScreenState extends State<AuthScreen> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF041510),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                                borderRadius: BorderRadius.circular(16),
+                                color: AppTheme.scaffoldBackground,
+                                border: Border.all(color: AppTheme.borderColor),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: TextField(
                                 controller: _emailController,
-                                style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                                style: GoogleFonts.inter(color: Colors.white, fontSize: 15),
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
                                   hintText: 'Enter your email address',
@@ -372,17 +389,17 @@ class _AuthScreenState extends State<AuthScreen> {
                               onTap: (_isLoadingGoogle || _isLoadingEmail) ? null : _handleEmailSignIn,
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: const EdgeInsets.symmetric(vertical: 17),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF34d399),
-                                  borderRadius: BorderRadius.circular(16),
+                                  color: AppTheme.blueAccent,
+                                  borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF34d399).withValues(alpha: 0.2),
-                                      blurRadius: 12,
+                                      color: AppTheme.blueAccent.withValues(alpha: 0.35),
+                                      blurRadius: 14,
                                       offset: const Offset(0, 4),
                                     )
-                                  ]
+                                  ],
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -390,20 +407,20 @@ class _AuthScreenState extends State<AuthScreen> {
                                     if (_isLoadingEmail)
                                       const SizedBox(
                                         width: 20, height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF041510)),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                       )
                                     else
                                       Text(
                                         'Continue with Email',
                                         style: GoogleFonts.inter(
-                                          color: const Color(0xFF041510),
-                                          fontSize: 16,
+                                          color: Colors.white,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     if (!_isLoadingEmail) ...[
                                       const SizedBox(width: 8),
-                                      const Icon(Icons.arrow_forward, color: Color(0xFF041510), size: 18),
+                                      const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
                                     ]
                                   ],
                                 ),

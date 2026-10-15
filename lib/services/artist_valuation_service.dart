@@ -2,6 +2,9 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ArtistValuationService {
+  /// Must equal VALUATION_ENGINE_VERSION in src/utils/valuationCache.js.
+  static const int engineVersion = 2;
+
   /// Cache to avoid redundant network roundtrips during session
   static final Map<String, double> _localMemoryCache = {};
 
@@ -58,6 +61,95 @@ class ArtistValuationService {
 
     // Default fallback if not found in cache
     return 0.0;
+  }
+
+  /// Single source of truth for the headline catalog value. Dart twin of
+  /// resolveSharedValuation() in src/utils/valuationCache.js — keep in lock-step.
+  ///  1. Look up by typed query, then by the RESOLVED artist name.
+  ///  2. First writer wins; a current-version value is never overwritten.
+  ///  3. Rows from older engines (no engineVersion) are replaced.
+  static Future<double> resolveSharedValuation({
+    required String typedQuery,
+    required List<String> activePlatforms,
+    required Map<String, Map<String, dynamic>> artistsMap,
+    required double computedVal,
+  }) async {
+    final typedId = buildCacheId(typedQuery, activePlatforms);
+    final a = artistsMap['spotify'] ??
+        artistsMap['spotify_proxy'] ??
+        artistsMap['itunes'] ??
+        artistsMap['youtube'] ??
+        (artistsMap.values.isNotEmpty ? artistsMap.values.first : null);
+    final resolvedName = (a?['name'] as String?)?.trim();
+    final hasName = resolvedName != null && resolvedName.isNotEmpty;
+    final canonId = hasName ? buildCacheId(resolvedName, activePlatforms) : typedId;
+    final displayName = hasName ? resolvedName : typedQuery;
+
+    try {
+      final typed = await _readRow(typedId);
+      if (typed.value != null) return typed.value!;
+
+      final canon = canonId == typedId ? typed : await _readRow(canonId);
+      if (canon.value != null) {
+        if (canonId != typedId) {
+          await _writeRow(typedId, displayName, activePlatforms, canon.value!, typed.exists);
+        }
+        _localMemoryCache[typedId] = canon.value!;
+        return canon.value!;
+      }
+
+      // Nobody has a current value yet: publish ours, then read back the actual winner.
+      await _writeRow(canonId, displayName, activePlatforms, computedVal, canon.exists);
+      final winner = (await _readRow(canonId)).value ?? computedVal.roundToDouble();
+      if (canonId != typedId) {
+        await _writeRow(typedId, displayName, activePlatforms, winner, typed.exists);
+      }
+      _localMemoryCache[typedId] = winner;
+      return winner;
+    } catch (_) {
+      return computedVal.roundToDouble();
+    }
+  }
+
+  static Future<({bool exists, double? value})> _readRow(String id) async {
+    final res = await Supabase.instance.client
+        .from('api_cache')
+        .select('data')
+        .eq('id', id)
+        .maybeSingle();
+    final d = res?['data'];
+    final raw = d is Map ? d['baseCatalogValue'] : null;
+    final value = raw is num ? raw.toDouble() : 0.0;
+    final exists = value > 0;
+    final ver = d is Map && d['engineVersion'] is num ? (d['engineVersion'] as num).toInt() : 0;
+    return (exists: exists, value: (exists && ver >= engineVersion) ? value : null);
+  }
+
+  static Future<void> _writeRow(
+    String id,
+    String artistName,
+    List<String> activePlatforms,
+    double value,
+    bool replaceStale,
+  ) async {
+    await Supabase.instance.client.from('api_cache').upsert(
+      {
+        'id': id,
+        'query': artistName.trim().toLowerCase(),
+        'platform': 'valuation',
+        'data': {
+          'artistName': artistName,
+          'baseCatalogValue': value.round(),
+          'currency': 'USD',
+          'platforms': normalizePlatforms(activePlatforms),
+          'engineVersion': engineVersion,
+          'updatedAt': DateTime.now().toUtc().toIso8601String(),
+        },
+      },
+      onConflict: 'id',
+      // Absent row -> insert-if-missing (loses gracefully to a concurrent writer).
+      ignoreDuplicates: !replaceStale,
+    );
   }
 
   /// Retrieves the 100% baseline catalog valuation for ANY artist
@@ -159,6 +251,7 @@ class ArtistValuationService {
           'artistName': artistName,
           'baseCatalogValue': baseCatalogValue.round(),
           'platforms': sortedPlatforms,
+          'engineVersion': engineVersion,
           'currency': 'USD',
           'updatedAt': DateTime.now().toUtc().toIso8601String(),
         },

@@ -91,7 +91,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                     const SizedBox(width: 8),
                     Text(
                       'FluxtonX',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -125,7 +125,7 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                       children: [
                         Text(
                           'Analyze Catalog',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -188,7 +188,16 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             decoration: BoxDecoration(
-                              color: hasInput ? AppTheme.brandGreen.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.03),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: hasInput
+                                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                                    : [const Color(0xFF1E293B).withValues(alpha: 0.4), const Color(0xFF0F172A).withValues(alpha: 0.4)],
+                              ),
+                              border: Border.all(
+                                color: hasInput ? AppTheme.borderColorSubtle : AppTheme.borderColor,
+                              ),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Row(
@@ -196,14 +205,14 @@ class _SearchPageState extends State<SearchPage> with SingleTickerProviderStateM
                               children: [
                                 Icon(
                                   Icons.calculate, 
-                                  color: hasInput ? AppTheme.brandGreen : Colors.white24, 
+                                  color: hasInput ? AppTheme.brandCyan : Colors.white24, 
                                   size: 20
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
                                   'Calculate Valuation',
                                   style: GoogleFonts.inter(
-                                    color: hasInput ? AppTheme.brandGreen : Colors.white24,
+                                    color: hasInput ? Colors.white : Colors.white30,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),

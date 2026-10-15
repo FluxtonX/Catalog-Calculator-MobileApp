@@ -1,3 +1,4 @@
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/utils/formatters.dart';
@@ -21,15 +22,15 @@ class OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int totalFollowers = artistData.totalFollowers;
-    int totalSubscribers = youtubeData?.totalSubscribers ?? 0;
-    int totalViews = youtubeData?.totalViews ?? 0;
+    final totalFollowers = artistData.totalFollowers;
+    final totalViews = youtubeData?.totalViews ?? 0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Main Valuation Hero Card (Mirroring website CfaMasterValuation)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -37,13 +38,14 @@ class OverviewTab extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF10b981), Color(0xFF047857)],
+                colors: [Color(0xFF0B101A), Color(0xFF05080F)],
               ),
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppTheme.borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF10b981).withValues(alpha: 0.3),
-                  blurRadius: 24,
+                  color: AppTheme.brandCyan.withValues(alpha: 0.1),
+                  blurRadius: 32,
                   offset: const Offset(0, 8),
                 )
               ],
@@ -51,58 +53,101 @@ class OverviewTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Combined Platforms Badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Estimated Value',
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.trending_up, size: 14, color: AppTheme.emeraldLight),
+                          const SizedBox(width: 6),
+                          Text(
+                            'COMBINED PLATFORMS',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          Formatters.formatCurrency(valuationData.estimatedValue),
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppTheme.brandCyan.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.25)),
                       ),
-                      child: const Icon(Icons.show_chart, color: Colors.white, size: 28),
+                      child: const Icon(Icons.show_chart, color: AppTheme.brandCyan, size: 20),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                
+                Text(
+                  'Estimated Value',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: double.infinity,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      Formatters.formatCurrency(valuationData.estimatedValue),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 42,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Estimated Market Value (8x)',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppTheme.borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Annual Revenue',
-                              style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
+                              style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 11),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -110,7 +155,7 @@ class OverviewTab extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 color: Colors.white,
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -120,25 +165,26 @@ class OverviewTab extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppTheme.borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Return Rate',
-                              style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
+                              style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 11),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '8.5%', // Hardcoded in the original UI
+                              '8.5%',
                               style: GoogleFonts.inter(
                                 color: Colors.white,
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -156,10 +202,10 @@ class OverviewTab extends StatelessWidget {
           if (valuationData.platformBreakdowns.isNotEmpty) ...[
             Text(
               'Platform Breakdown',
-              style: GoogleFonts.outfit(
-                color: const Color(0xFF10b981),
+              style: GoogleFonts.inter(
+                color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 16),
@@ -168,22 +214,31 @@ class OverviewTab extends StatelessWidget {
               final data = e.value;
               final label = platform == 'spotify' || platform == 'apify' ? 'Spotify' : platform == 'itunes' || platform == 'apple' ? 'Apple Music' : 'YouTube';
               final icon = platform == 'spotify' || platform == 'apify' ? Icons.graphic_eq : platform == 'itunes' || platform == 'apple' ? Icons.music_note : Icons.smart_display;
-              final color = platform == 'spotify' || platform == 'apify' ? const Color(0xFF1DB954) : platform == 'itunes' || platform == 'apple' ? Colors.white : const Color(0xFFFF0000);
+              final color = platform == 'spotify' || platform == 'apify' ? AppTheme.spotifyGreen : platform == 'itunes' || platform == 'apple' ? Colors.white : AppTheme.youtubeRed;
               
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppTheme.cardBackground,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppTheme.borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.2),
+                        color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: color.withValues(alpha: 0.25)),
                       ),
                       child: Icon(icon, color: color, size: 20),
                     ),
@@ -192,14 +247,29 @@ class OverviewTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(label, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('Est. ${Formatters.formatCurrency(data.midEstimate)}', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+                          Text(
+                            label,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Est. ${Formatters.formatCurrency(data.midEstimate)}',
+                            style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
                     Text(
                       Formatters.formatCurrency(data.totalAnnualRevenue),
-                      style: GoogleFonts.inter(color: color, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: GoogleFonts.inter(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -210,10 +280,10 @@ class OverviewTab extends StatelessWidget {
           const SizedBox(height: 32),
           Text(
             'Top Tracks Analysis',
-            style: GoogleFonts.outfit(
-              color: const Color(0xFF10b981),
+            style: GoogleFonts.inter(
+              color: Colors.white,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 16),
@@ -224,7 +294,7 @@ class OverviewTab extends StatelessWidget {
               child: TopTracksList(
                 title: 'Spotify Top Tracks',
                 tracks: valuationData.platformBreakdowns['spotify']?.trackDetails ?? valuationData.platformBreakdowns['apify']?.trackDetails ?? [],
-                color: const Color(0xFF1DB954),
+                color: AppTheme.spotifyGreen,
               ),
             ),
           ],
@@ -235,7 +305,7 @@ class OverviewTab extends StatelessWidget {
               child: TopTracksList(
                 title: 'YouTube Top Videos',
                 tracks: youtubeData!.videos,
-                color: const Color(0xFFFF0000),
+                color: AppTheme.youtubeRed,
               ),
             ),
           ],
@@ -246,7 +316,7 @@ class OverviewTab extends StatelessWidget {
               child: TopTracksList(
                 title: 'Apple Music Top Tracks',
                 tracks: appleData!.topTracks,
-                color: const Color(0xFFFA243C),
+                color: AppTheme.appleRed,
               ),
             ),
           ],
@@ -255,10 +325,10 @@ class OverviewTab extends StatelessWidget {
           
           Text(
             'Global Analytics',
-            style: GoogleFonts.outfit(
-              color: const Color(0xFF10b981),
+            style: GoogleFonts.inter(
+              color: Colors.white,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 16),
@@ -279,3 +349,4 @@ class OverviewTab extends StatelessWidget {
     );
   }
 }
+

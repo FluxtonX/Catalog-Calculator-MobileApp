@@ -3,7 +3,6 @@ import 'package:catalog_calculator_flutter/screens/onboarding_screen.dart';
 import 'package:catalog_calculator_flutter/screens/search_artist_screen.dart';
 import 'package:catalog_calculator_flutter/screens/main_navigation_screen.dart';
 import 'package:catalog_calculator_flutter/screens/splash_screen.dart';
-import 'package:catalog_calculator_flutter/screens/valuation_dashboard_screen.dart';
 import 'package:catalog_calculator_flutter/screens/artist_valuation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +10,7 @@ import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_c
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,15 +99,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp.router(
         title: 'Catalog Calculator',
         debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF09090b), // zinc-950
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF10b981), // emerald-500
-          secondary: Color(0xFF10b981),
-          surface: Color(0xFF09090b),
-        ),
-      ),
-      routerConfig: _router,
+        theme: AppTheme.darkTheme,
+        routerConfig: _router,
       ),
     );
   }

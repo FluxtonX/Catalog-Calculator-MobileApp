@@ -1,3 +1,4 @@
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -18,20 +19,27 @@ class MetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: Colors.white70, size: 20),
+          Icon(icon, color: AppTheme.brandCyan, size: 20),
           const SizedBox(height: 8),
           Text(
             value,
             style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -40,8 +48,8 @@ class MetricCard extends StatelessWidget {
           Text(
             title,
             style: GoogleFonts.inter(
-              color: Colors.white54,
-              fontSize: 10,
+              color: AppTheme.textMuted,
+              fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -51,3 +59,4 @@ class MetricCard extends StatelessWidget {
     );
   }
 }
+

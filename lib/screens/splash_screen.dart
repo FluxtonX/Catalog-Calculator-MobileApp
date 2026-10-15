@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -40,8 +41,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF041510);
-    const brandGreen = Color(0xFF34d399);
+    final bgColor = AppTheme.scaffoldBackground;
+    const brandCyan = AppTheme.brandCyan;
+    const brandGreen = AppTheme.primaryGreen;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -52,62 +54,63 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Main Glowing Logo Box
+                  // Main Glowing Logo Box (Website matching: #0B101A with cyan glow)
                   Container(
-                    width: 140,
-                    height: 140,
-                    padding: const EdgeInsets.all(24),
+                    width: 130,
+                    height: 130,
+                    padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: bgColor,
-                      border: Border.all(color: brandGreen.withValues(alpha: 0.3), width: 2),
+                      color: AppTheme.cardBackground,
+                      border: Border.all(color: brandCyan.withValues(alpha: 0.35), width: 1.5),
                       borderRadius: BorderRadius.circular(32),
                       boxShadow: [
                         BoxShadow(
-                          color: brandGreen.withValues(alpha: 0.1),
+                          color: brandCyan.withValues(alpha: 0.15),
                           blurRadius: 40,
-                          spreadRadius: 10,
+                          spreadRadius: 8,
                         )
-                      ]
+                      ],
                     ),
                     child: Image.asset(
                       'assets/images/logo.png',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.bar_chart_rounded, size: 60, color: brandGreen);
+                        return const Icon(Icons.calculate, size: 54, color: brandCyan);
                       },
                     ),
                   ),
                   
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
                   
-                  // Text Header
+                  // Text Header (Catalog white, Calculator in brand cyan)
                   Text.rich(
                     TextSpan(
                       text: 'Catalog ',
-                      style: GoogleFonts.outfit(
-                        color: brandGreen,
-                        fontSize: 32,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 34,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
                       ),
                       children: const [
                         TextSpan(
                           text: 'Calculator',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: brandCyan, fontWeight: FontWeight.w700),
                         ),
-                      ]
+                      ],
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   
                   // Subtitle
                   Text(
-                    'VALUATION & INSIGHT',
+                    'PROFESSIONAL VALUATION SUITE',
                     style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 3,
+                      letterSpacing: 2.5,
                     ),
                   ),
                 ],

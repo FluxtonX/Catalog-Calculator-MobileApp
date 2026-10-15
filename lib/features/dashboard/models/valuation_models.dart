@@ -16,7 +16,7 @@ class ValuationDataModel {
     if (json['breakdown'] is Map) {
       (json['breakdown'] as Map).forEach((key, value) {
         if (value is Map<String, dynamic>) {
-          breakdowns[key] = PlatformBreakdownModel.fromJson(value);
+          breakdowns[key.toString()] = PlatformBreakdownModel.fromJson(value);
         }
       });
     }
@@ -145,7 +145,7 @@ class TrackModel {
       rank: rk,
       album: alb,
       releaseYear: ry,
-      viewCountFormatted: viewCount,
+      viewCountFormatted: viewCount.toString(),
       streamCount: rawStreams,
       imageUrl: img?.toString(),
       platform: plat,

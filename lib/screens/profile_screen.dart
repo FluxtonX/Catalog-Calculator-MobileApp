@@ -1,3 +1,4 @@
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,8 +16,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFF0F172A);
-    const brandGreen = Color(0xFF10B981);
+    final bgColor = AppTheme.scaffoldBackground;
+    const brandGreen = AppTheme.primaryGreen;
     final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
@@ -26,8 +27,9 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           'Profile',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.inter(
             color: Colors.white,
+            fontSize: 20,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -37,29 +39,47 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const SizedBox(height: 32),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: brandGreen.withValues(alpha: 0.2),
-              child: const Icon(Icons.person, size: 50, color: brandGreen),
-            ),
             const SizedBox(height: 24),
+            CircleAvatar(
+              radius: 46,
+              backgroundColor: brandGreen.withValues(alpha: 0.15),
+              child: const Icon(Icons.person, size: 46, color: brandGreen),
+            ),
+            const SizedBox(height: 18),
             Text(
-              user?.email ?? 'Unknown User',
+              user?.email ?? 'Valuation User',
               style: GoogleFonts.inter(
                 color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.brandCyan.withValues(alpha: 0.1),
+                border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.25)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'PRO ACCOUNT',
+                style: GoogleFonts.inter(
+                  color: AppTheme.brandCyan,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                ),
               ),
             ),
             const SizedBox(height: 32),
             Expanded(
               child: ListView(
                 children: [
-                  _buildProfileTile(Icons.account_circle, 'Account Details', 'Manage your email and password'),
-                  _buildProfileTile(Icons.notifications, 'Notifications', 'Manage alerts and emails'),
-                  _buildProfileTile(Icons.security, 'Privacy & Security', 'Data controls and permissions'),
-                  _buildProfileTile(Icons.help_outline, 'Help & Support', 'Get help with the app'),
+                  _buildProfileTile(Icons.account_circle_outlined, 'Account Details', 'Manage your email and password'),
+                  _buildProfileTile(Icons.notifications_outlined, 'Notifications', 'Manage alerts and valuation reports'),
+                  _buildProfileTile(Icons.security_outlined, 'Privacy & Security', 'Data controls and permissions'),
+                  _buildProfileTile(Icons.help_outline, 'Help & Support', 'Documentation and contact'),
                 ],
               ),
             ),
@@ -67,14 +87,14 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _signOut(context),
-                icon: const Icon(Icons.logout, color: Colors.white),
+                icon: const Icon(Icons.logout, color: Colors.white, size: 18),
                 label: const Text('Log Out'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.withValues(alpha: 0.8),
+                  backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.85),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ),
@@ -86,19 +106,27 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProfileTile(IconData icon, String title, String subtitle) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF34d399)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.cardBackground,
+        border: Border.all(color: AppTheme.borderColor),
+        borderRadius: BorderRadius.circular(14),
       ),
-      title: Text(title, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-      onTap: () {},
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
+        ),
+        title: Text(title, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: Text(subtitle, style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.white30, size: 18),
+        onTap: () {},
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 
 class ValuationPage extends StatefulWidget {
 
@@ -62,7 +63,7 @@ class _ValuationPageState extends State<ValuationPage> {
         } else if (data != null && data['artists'] != null) {
            final artistsData = data['artists'];
            if (artistsData is Map && artistsData['items'] != null && (artistsData['items'] as List).isNotEmpty) {
-              _artistData = artistsData['items'][0];
+              _artistData = Map<String, dynamic>.from(artistsData['items'][0] as Map);
               await _calculateValuation();
            } else {
               _errorMessage = 'Artist not found.';
@@ -148,26 +149,26 @@ class _ValuationPageState extends State<ValuationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020617), // Deep Slate 950
+      backgroundColor: AppTheme.scaffoldBackground,
       body: Stack(
         children: [
-          // Background ambient light
+          // Background ambient light (Website glowing gradients)
           Positioned(
             top: -100,
             right: -50,
             child: Container(
-              width: 400,
-              height: 400,
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: widget.platform == 'spotify' 
-                    ? const Color(0xFF10b981).withValues(alpha: 0.05)
-                    : const Color(0xFF3b82f6).withValues(alpha: 0.05),
+                    ? AppTheme.primaryGreen.withValues(alpha: 0.08)
+                    : AppTheme.brandCyan.withValues(alpha: 0.08),
                 boxShadow: [
                   BoxShadow(
                     color: widget.platform == 'spotify' 
-                        ? const Color(0xFF10b981).withValues(alpha: 0.1)
-                        : const Color(0xFF3b82f6).withValues(alpha: 0.1), 
+                        ? AppTheme.primaryGreen.withValues(alpha: 0.12)
+                        : AppTheme.brandCyan.withValues(alpha: 0.12), 
                     blurRadius: 100
                   ),
                 ],
@@ -192,21 +193,21 @@ class _ValuationPageState extends State<ValuationPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: Color(0xFF10b981)),
+          const CircularProgressIndicator(color: AppTheme.primaryGreen),
           const SizedBox(height: 24),
           Text(
             'Analyzing Catalog...',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Fetching real-time metrics for ${widget.query}',
             style: GoogleFonts.inter(
-              color: const Color(0xFF94a3b8),
+              color: AppTheme.textSecondary,
               fontSize: 14,
             ),
           ),
@@ -233,18 +234,21 @@ class _ValuationPageState extends State<ValuationPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+                const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 64),
                 const SizedBox(height: 16),
                 Text(
                   _errorMessage!,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(color: Colors.redAccent.shade100, fontSize: 16),
+                  style: GoogleFonts.inter(color: Colors.redAccent.shade100, fontSize: 15),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => context.pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    backgroundColor: AppTheme.cardBackground,
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: AppTheme.borderColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Go Back'),
                 )
@@ -315,7 +319,7 @@ class _ValuationPageState extends State<ValuationPage> {
                     children: [
                       Text(
                         artistName,
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -350,21 +354,22 @@ class _ValuationPageState extends State<ValuationPage> {
 
           const SizedBox(height: 32),
 
-          // Valuation Cards
+          // Valuation Cards (Matching website CfaMasterValuation card)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF10b981), Color(0xFF059669)],
+                  colors: [Color(0xFF0B101A), Color(0xFF05080F)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppTheme.borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10b981).withValues(alpha: 0.3),
+                    color: AppTheme.brandCyan.withValues(alpha: 0.1),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   )
@@ -375,27 +380,37 @@ class _ValuationPageState extends State<ValuationPage> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.bar_chart, color: Colors.white, size: 20),
+                      const Icon(Icons.bar_chart, color: AppTheme.brandCyan, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'EST. CATALOG VALUATION',
                         style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
+                          color: AppTheme.brandCyan,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    _formatCurrency(_catalogValue),
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
+                  SizedBox(
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _formatCurrency(_catalogValue),
+                        maxLines: 1,
+                        softWrap: false,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 44,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1,
+                          height: 1,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -407,7 +422,7 @@ class _ValuationPageState extends State<ValuationPage> {
                         children: [
                           Text(
                             'Est. Monthly Rev',
-                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                            style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 12),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -421,11 +436,11 @@ class _ValuationPageState extends State<ValuationPage> {
                         children: [
                           Text(
                             'Market Multiple',
-                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                            style: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 12),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '3.0x',
+                            '8.0x',
                             style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -440,74 +455,92 @@ class _ValuationPageState extends State<ValuationPage> {
           const SizedBox(height: 24),
           
           if (!_isAuthenticated)
-            // Detailed Stats Preview (Blurred / Locked)
+            // Detailed Stats Preview (Website login section matching LandingPage.jsx lines 353-365)
             Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
+              child: Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardBackground,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppTheme.borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    )
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.blueAccent.withValues(alpha: 0.12),
+                        border: Border.all(color: AppTheme.blueAccent.withValues(alpha: 0.25)),
+                      ),
+                      child: const Icon(Icons.lock_outline, color: Color(0xFF60A5FA), size: 30),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Detailed Analytics Locked',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Login for a detailed valuation report with streaming breakdowns, track-level revenue, and multi-platform analytics.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13.5,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: () {
+                        context.push('/login');
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF3b82f6).withValues(alpha: 0.1),
+                          color: AppTheme.blueAccent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.blueAccent.withValues(alpha: 0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
                         ),
-                        child: const Icon(Icons.lock_outline, color: Color(0xFF60a5fa), size: 32),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Detailed Analytics Locked',
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sign in to view streaming breakdowns, track-level revenue, follower demographics, and historical trends for $artistName.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF94a3b8),
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      GestureDetector(
-                        onTap: () {
-                          context.push('/login');
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            'Log In to View Full Report',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.lock, color: Colors.white, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Login to Platform',
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      )
-                    ],
-                  ),
+                      ),
+                    )
+                  ],
                 ),
               ),
             ),
@@ -521,42 +554,43 @@ class _ValuationPageState extends State<ValuationPage> {
                 children: [
                   Text(
                     'Premium Analytics Unlocked',
-                    style: GoogleFonts.outfit(
-                      color: const Color(0xFF10b981),
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primaryGreen,
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(24),
+                      color: AppTheme.cardBackground,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.borderColor),
                     ),
                     child: Column(
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Streaming Revenue', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text(_formatCurrency(_monthlyRevenue * 0.7), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text('Streaming Revenue', style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13)),
+                            Text(_formatCurrency(_monthlyRevenue * 0.7), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                           ],
                         ),
-                        const Divider(color: Colors.white24, height: 32),
+                        const Divider(color: AppTheme.borderColor, height: 28),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Publishing/Sync', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text(_formatCurrency(_monthlyRevenue * 0.3), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text('Publishing/Sync', style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13)),
+                            Text(_formatCurrency(_monthlyRevenue * 0.3), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                           ],
                         ),
-                        const Divider(color: Colors.white24, height: 32),
+                        const Divider(color: AppTheme.borderColor, height: 28),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Projected Growth (YoY)', style: GoogleFonts.inter(color: Colors.white70)),
-                            Text('+14.2%', style: GoogleFonts.inter(color: const Color(0xFF10b981), fontWeight: FontWeight.bold)),
+                            Text('Projected Growth (YoY)', style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13)),
+                            Text('+14.2%', style: GoogleFonts.inter(color: AppTheme.primaryGreen, fontWeight: FontWeight.w800, fontSize: 15)),
                           ],
                         ),
                       ],

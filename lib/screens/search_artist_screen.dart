@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:catalog_calculator_flutter/core/theme/app_theme.dart';
 import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_cubit.dart';
 import 'package:catalog_calculator_flutter/features/search/cubit/search_artist_state.dart';
 import 'package:flutter/material.dart';
@@ -33,10 +33,10 @@ class SearchArtistView extends StatefulWidget {
 
 class _SearchArtistViewState extends State<SearchArtistView>
     with SingleTickerProviderStateMixin {
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey _resultsKey = GlobalKey();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _royaltyController = TextEditingController(text: '100');
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _resultsKey = GlobalKey();
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -120,7 +120,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
 
       if (mounted) {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (_) => ArtistValuationScreen(
               query: _searchController.text,
               selectedPlatforms: _platforms,
@@ -163,65 +163,39 @@ class _SearchArtistViewState extends State<SearchArtistView>
     _fadeController.forward();
   }
 
-  void _scrollToResults() {
-    if (!mounted) return;
-    FocusScope.of(context).unfocus();
-
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (!mounted) return;
-      _performScroll();
-    });
-  }
-
-  void _performScroll() {
-    if (!mounted || !_scrollController.hasClients) return;
-    
-    try {
-      final renderBox = _resultsKey.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize) {
-        final position = renderBox.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
-        final targetOffset = _scrollController.offset + position.dy - 16.0;
-        final clampedOffset = targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
-        
-        _scrollController.animateTo(
-          clampedOffset,
-          duration: const Duration(milliseconds: 650),
-          curve: Curves.easeInOutCubic,
-        );
-        return;
-      }
-    } catch (_) {}
-
-    if (_scrollController.hasClients && _scrollController.position.maxScrollExtent > 0) {
-      final fallbackOffset = (_scrollController.position.maxScrollExtent > 650.0) 
-          ? 650.0 
-          : _scrollController.position.maxScrollExtent;
-      _scrollController.animateTo(
-        fallbackOffset,
-        duration: const Duration(milliseconds: 650),
-        curve: Curves.easeInOutCubic,
-      );
-    }
-  }
-
   @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     _fadeController.dispose();
     super.dispose();
   }
 
-  double _parseNumber(dynamic str) {
-    if (str == null) return 0;
-    if (str is num) return str.toDouble();
-    final upper = str.toString().toUpperCase();
-    if (upper.contains('B')) return double.parse(upper.replaceAll('B', '')) * 1e9;
-    if (upper.contains('M')) return double.parse(upper.replaceAll('M', '')) * 1e6;
-    if (upper.contains('K')) return double.parse(upper.replaceAll('K', '')) * 1e3;
-    return double.tryParse(upper.replaceAll(RegExp(','), '')) ?? 0;
-  }
 
+
+  void _scrollToResults() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
+        final keyContext = _resultsKey.currentContext;
+        if (keyContext != null) {
+          Scrollable.ensureVisible(
+            keyContext,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOutCubic,
+            alignment: 0.0,
+          );
+        } else if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      });
+    });
+  }
 
   Future<void> _handleCalculate([String? overrideQuery, bool pushScreen = false]) async {
     final query = (overrideQuery ?? _searchController.text).trim();
@@ -238,19 +212,18 @@ class _SearchArtistViewState extends State<SearchArtistView>
       platforms: _platforms,
     );
 
-    if (mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
-      _scrollToResults();
-    }
-
     if (pushScreen && mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
       Navigator.of(context).push(
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => ArtistValuationScreen(
             query: query,
             selectedPlatforms: _platforms,
           ),
         ),
       );
+    } else if (mounted && context.read<SearchArtistCubit>().state is SearchArtistLoaded) {
+      // Auto move down smoothly to results, exactly like website LandingPage.jsx resultsRef.scrollIntoView
+      _scrollToResults();
     }
   }
 
@@ -317,42 +290,43 @@ class _SearchArtistViewState extends State<SearchArtistView>
       onTap: () => setState(() => _platforms[id] = !isSelected),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.08) : Colors.transparent,
+          color: AppTheme.scaffoldBackground,
           border: Border.all(
-            color: isSelected ? activeColor.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.15),
+            color: isSelected ? activeColor.withValues(alpha: 0.4) : AppTheme.borderColor,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 22,
-              height: 22,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
-                color: isSelected ? activeColor : Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
+                color: isSelected ? activeColor : const Color(0xFF1A2333),
+                borderRadius: BorderRadius.circular(5),
               ),
               child: isSelected 
-                  ? const Icon(Icons.check, size: 16, color: Colors.black) // Dark icon inside bright box
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
                   : null,
             ),
-            const SizedBox(width: 16),
-            Icon(icon, color: isSelected ? activeColor : Colors.white, size: 22),
+            const SizedBox(width: 14),
+            Icon(icon, color: activeColor, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 name,
                 style: GoogleFonts.inter(
                   color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+            const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
           ],
         ),
       ),
@@ -376,9 +350,9 @@ class _SearchArtistViewState extends State<SearchArtistView>
         final showResults = estimatedValue != null;
         final hasInput = _searchController.text.trim().isNotEmpty;
         
-        // Very dark emerald background color matching the image
-        const bgColor = Color(0xFF041510);
-        const brandGreen = Color(0xFF34d399); // Bright green
+        // Accurate website colors
+        final bgColor = AppTheme.scaffoldBackground;
+        const brandCyan = AppTheme.brandCyan;
         
         return Scaffold(
           backgroundColor: bgColor,
@@ -391,52 +365,60 @@ class _SearchArtistViewState extends State<SearchArtistView>
               children: [
                 const SizedBox(height: 16),
                 
-                // Top Logo
+                // Top Logo (Website header: Hexagon/Bar icon + Catalog [Calculator by CFA])
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 28,
-                      height: 28,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: brandGreen.withValues(alpha: 0.1),
-                        border: Border.all(color: brandGreen.withValues(alpha: 0.3)),
-                        borderRadius: BorderRadius.circular(6),
+                        color: brandCyan.withValues(alpha: 0.1),
+                        border: Border.all(color: brandCyan.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.bar_chart, color: brandGreen, size: 16),
+                      child: const Icon(Icons.calculate, color: brandCyan, size: 18),
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      'Catalog Calculator',
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                    Text.rich(
+                      TextSpan(
+                        text: 'Catalog ',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                        children: const [
+                          TextSpan(
+                            text: 'Calculator',
+                            style: TextStyle(color: brandCyan, fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 
-                // Badge
+                // Badge (Option 1 badge from website)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: brandGreen.withValues(alpha: 0.1),
-                    border: Border.all(color: brandGreen.withValues(alpha: 0.3)),
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.auto_awesome, color: brandGreen, size: 14),
-                      const SizedBox(width: 8),
+                      const Icon(Icons.bolt, color: Color(0xFF60A5FA), size: 14),
+                      const SizedBox(width: 6),
                       Text(
-                        'STEP 1 - SELECT ARTIST',
+                        'OPTION 1 • INSTANT ESTIMATE',
                         style: GoogleFonts.inter(
-                          color: brandGreen,
+                          color: const Color(0xFF60A5FA),
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.5,
@@ -446,34 +428,34 @@ class _SearchArtistViewState extends State<SearchArtistView>
                   ),
                 ),
                 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 
-                // Hero Text
+                // Hero Text matching LandingPage.jsx
                 Text.rich(
                   TextSpan(
                     text: "What's Your\n",
-                    style: GoogleFonts.outfit(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w900,
+                    style: GoogleFonts.inter(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
                       color: Colors.white,
-                      height: 1.1,
-                      letterSpacing: -1,
+                      height: 1.15,
+                      letterSpacing: -1.0,
                     ),
                     children: const [
                       TextSpan(
                         text: 'Catalog',
-                        style: TextStyle(color: Color(0xFF34d399)), // Inherits w900 and font family
+                        style: TextStyle(color: brandCyan),
                       ),
                       TextSpan(
                         text: ' Worth?',
-                        style: TextStyle(color: Colors.white), // Inherits w900 and font family
+                        style: TextStyle(color: Colors.white),
                       ),
                     ]
                   ),
                   textAlign: TextAlign.center,
                 ),
                 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -482,23 +464,30 @@ class _SearchArtistViewState extends State<SearchArtistView>
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: AppTheme.textSecondary,
                       height: 1.5,
                     ),
                   ),
                 ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 36),
                 
-                // Main Container
+                // Main Container (Web Card: #0B101A with border #1A2333)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF081F17), // Slightly lighter green box
-                      border: Border.all(color: brandGreen.withValues(alpha: 0.15)),
-                      borderRadius: BorderRadius.circular(32),
+                      color: AppTheme.cardBackground,
+                      border: Border.all(color: AppTheme.borderColor),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,24 +495,24 @@ class _SearchArtistViewState extends State<SearchArtistView>
                         // Search Bar
                         Container(
                           decoration: BoxDecoration(
-                            color: bgColor,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                            borderRadius: BorderRadius.circular(16),
+                            color: AppTheme.scaffoldBackground,
+                            border: Border.all(color: AppTheme.borderColor),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: TextField(
                             controller: _searchController,
-                            style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                            style: GoogleFonts.inter(color: Colors.white, fontSize: 15),
                             textInputAction: TextInputAction.done,
                             onChanged: (text) => setState(() {}),
                             decoration: InputDecoration(
                               hintText: 'Search artist...',
                               hintStyle: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3)),
                               prefixIcon: const Padding(
-                                padding: EdgeInsets.all(18),
-                                child: Icon(Icons.search, color: Colors.white54, size: 22),
+                                padding: EdgeInsets.all(16),
+                                child: Icon(Icons.search, color: Colors.white54, size: 20),
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 18),
                             ),
                             onSubmitted: (_) => _handleCalculate(),
                           ),
@@ -548,9 +537,9 @@ class _SearchArtistViewState extends State<SearchArtistView>
                                   padding: const EdgeInsets.only(right: 8),
                                   child: ActionChip(
                                     label: Text(artist),
-                                    avatar: const Icon(Icons.trending_up, size: 14, color: Color(0xFF34D399)),
-                                    backgroundColor: const Color(0xFF041510),
-                                    side: BorderSide(color: brandGreen.withValues(alpha: 0.25)),
+                                    avatar: const Icon(Icons.trending_up, size: 14, color: brandCyan),
+                                    backgroundColor: AppTheme.scaffoldBackground,
+                                    side: const BorderSide(color: AppTheme.borderColor),
                                     labelStyle: GoogleFonts.inter(
                                       color: Colors.white70,
                                       fontSize: 12,
@@ -568,73 +557,104 @@ class _SearchArtistViewState extends State<SearchArtistView>
                           ),
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
                         
                         Text(
                           'DATA SOURCES',
                           style: GoogleFonts.inter(
-                            color: brandGreen,
-                            fontSize: 11,
+                            color: brandCyan,
+                            fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.5,
                           ),
                         ),
+                        const SizedBox(height: 14),
+                        
+                        // Platform checkboxes
+                        _buildPlatformOption('spotify', 'Spotify', Icons.music_note, AppTheme.spotifyGreen),
+                        _buildPlatformOption('youtube', 'YouTube', Icons.play_circle_filled, AppTheme.youtubeRed),
+                        _buildPlatformOption('apple', 'Apple Music', Icons.apple, AppTheme.appleSilver),
+
                         const SizedBox(height: 16),
                         
-                        // Platform checkboxes exactly like the image
-                        _buildPlatformOption('spotify', 'Spotify', Icons.music_note, brandGreen),
-                        // Youtube Middle, Apple Third
-                        _buildPlatformOption('youtube', 'YouTube', Icons.play_circle_filled, const Color(0xFFef4444)),
-                        _buildPlatformOption('apple', 'Apple Music', Icons.apple, Colors.white),
-
-                        const SizedBox(height: 24),
-                        
-                        // Footer text
-                        Text(
-                          'Estimates are indicative and based on publicly available top-10 streaming data.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            fontSize: 11,
-                            height: 1.5,
+                        // Info banner matching web
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
+                            border: Border.all(color: brandCyan.withValues(alpha: 0.2)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline, color: brandCyan, size: 16),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'THIS ESTIMATE IS AN INDICATION BASED ON YOUR TOP 10 TRACKS',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         
-                        // Calculate Button
+                        // Calculate Button (Matching web gradient button)
                         GestureDetector(
                           onTap: (hasInput && !isSearching) ? _handleCalculate : null,
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: hasInput ? brandGreen.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: hasInput
+                                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                                    : [const Color(0xFF1E293B).withValues(alpha: 0.4), const Color(0xFF0F172A).withValues(alpha: 0.4)],
+                              ),
+                              border: Border.all(
+                                color: hasInput ? AppTheme.borderColorSubtle : AppTheme.borderColor,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: hasInput ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                )
+                              ] : null,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 if (isSearching)
                                   const SizedBox(
-                                    width: 20, height: 20,
+                                    width: 18, height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(brandGreen),
+                                      valueColor: AlwaysStoppedAnimation<Color>(brandCyan),
                                     ),
                                   )
                                 else
                                   Icon(
-                                    showResults ? Icons.arrow_downward : Icons.calculate, 
-                                    color: hasInput ? brandGreen : Colors.white24, 
+                                    Icons.calculate, 
+                                    color: hasInput ? brandCyan : Colors.white24, 
                                     size: 20
                                   ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 10),
                                 Text(
-                                  isSearching ? 'Calculating...' : (showResults ? 'View Results ↓' : 'Calculate Valuation'),
+                                  isSearching ? 'Calculating...' : 'Calculate Catalog Value',
                                   style: GoogleFonts.inter(
-                                    color: hasInput ? brandGreen : Colors.white24,
-                                    fontSize: 16,
+                                    color: hasInput ? Colors.white : Colors.white30,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -657,9 +677,12 @@ class _SearchArtistViewState extends State<SearchArtistView>
                     ),
                   ),
 
-                // Expanding Results Section
+                // Valuation Results Section
                 if (showResults)
-                  _buildResultsSection(brandGreen, estimatedValue, artistData)
+                  Container(
+                    key: _resultsKey,
+                    child: _buildResultsSection(estimatedValue, artistData),
+                  )
                 else
                   const SizedBox(height: 40),
               ],
@@ -692,7 +715,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
     return 'Note: This is your catalog valuation calculated across combined platforms.';
   }
 
-  Widget _buildResultsSection(Color brandGreen, double? estimatedValue, ArtistProfileModel? artistData) {
+  Widget _buildResultsSection(double? estimatedValue, ArtistProfileModel? artistData) {
     if (estimatedValue == null) return const SizedBox.shrink();
     
     final artistName = artistData?.title ?? _searchController.text;
@@ -702,7 +725,6 @@ class _SearchArtistViewState extends State<SearchArtistView>
     }
 
     return Padding(
-      key: _resultsKey,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       child: Column(
         children: [
@@ -713,11 +735,11 @@ class _SearchArtistViewState extends State<SearchArtistView>
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: brandGreen.withValues(alpha: 0.3), width: 2),
+                border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.5), width: 2),
                 image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
                 boxShadow: [
                   BoxShadow(
-                    color: brandGreen.withValues(alpha: 0.2),
+                    color: AppTheme.brandCyan.withValues(alpha: 0.2),
                     blurRadius: 20,
                   )
                 ]
@@ -725,11 +747,12 @@ class _SearchArtistViewState extends State<SearchArtistView>
             ),
             
           Text(
-            artistName as String,
-            style: GoogleFonts.outfit(
+            artistName,
+            style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 28,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 32),
@@ -737,20 +760,30 @@ class _SearchArtistViewState extends State<SearchArtistView>
           Text(
             'ESTIMATED CATALOG VALUE',
             style: GoogleFonts.inter(
-              color: brandGreen,
-              fontSize: 12,
+              color: AppTheme.brandCyan,
+              fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            _formatLocalCurrency(estimatedValue),
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 52,
-              fontWeight: FontWeight.w900,
-              height: 1,
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Text(
+                _formatLocalCurrency(estimatedValue),
+                maxLines: 1,
+                softWrap: false,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 44,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.0,
+                  height: 1.1,
+                ),
+              ),
             ),
           ),
           
@@ -760,18 +793,18 @@ class _SearchArtistViewState extends State<SearchArtistView>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withValues(alpha: 0.3),
-                  border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.5)),
+                  color: const Color(0xFF1E293B).withValues(alpha: 0.5),
+                  border: Border.all(color: const Color(0xFF334155).withValues(alpha: 0.6)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'QUICK READ',
                   style: GoogleFonts.inter(
-                    color: const Color(0xFF64748B),
+                    color: const Color(0xFF94A3B8),
                     fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 1,
                   ),
                 ),
@@ -780,10 +813,10 @@ class _SearchArtistViewState extends State<SearchArtistView>
               Text(
                 _formatQuickRead(estimatedValue),
                 style: GoogleFonts.inter(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppTheme.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
@@ -793,13 +826,13 @@ class _SearchArtistViewState extends State<SearchArtistView>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+              border: Border.all(color: AppTheme.borderColor),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '${_getPlatformName()} @ ${_royaltyShare.toStringAsFixed(0)}% ROYALTY SHARE',
-              style: GoogleFonts.inter(color: brandGreen, fontSize: 11, fontWeight: FontWeight.w700),
+              style: GoogleFonts.inter(color: AppTheme.brandCyan, fontSize: 11, fontWeight: FontWeight.w700),
             ),
           ),
           
@@ -808,16 +841,16 @@ class _SearchArtistViewState extends State<SearchArtistView>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F2936),
-              border: Border.all(color: const Color(0xFF1B4052)),
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF0F172A),
+              border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.25)),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
                   padding: EdgeInsets.only(top: 2),
-                  child: Icon(Icons.info, color: Color(0xFF38BDF8), size: 16),
+                  child: Icon(Icons.info, color: AppTheme.brandCyan, size: 16),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -832,28 +865,28 @@ class _SearchArtistViewState extends State<SearchArtistView>
           
           const SizedBox(height: 32),
 
-          // Controls Box
+          // Controls Box (Website matching: #0B101A with border #1A2333)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF081F17),
-              border: Border.all(color: brandGreen.withValues(alpha: 0.15)),
-              borderRadius: BorderRadius.circular(24),
+              color: AppTheme.cardBackground,
+              border: Border.all(color: AppTheme.borderColor),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Royalty share', style: GoogleFonts.inter(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text('Royalty share', style: GoogleFonts.inter(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
                     Row(
                       children: [
                         Container(
                           height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF041510),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppTheme.scaffoldBackground,
+                            border: Border.all(color: AppTheme.borderColor),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -869,7 +902,7 @@ class _SearchArtistViewState extends State<SearchArtistView>
                                   }
                                 },
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                                   child: Icon(Icons.remove, size: 16, color: Colors.white54),
                                 ),
                               ),
@@ -905,14 +938,14 @@ class _SearchArtistViewState extends State<SearchArtistView>
                                   }
                                 },
                                 child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                                   child: Icon(Icons.add, size: 16, color: Colors.white54),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -921,15 +954,15 @@ class _SearchArtistViewState extends State<SearchArtistView>
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                             decoration: BoxDecoration(
-                              color: brandGreen.withValues(alpha: 0.1),
-                              border: Border.all(color: brandGreen.withValues(alpha: 0.2)),
+                              color: AppTheme.brandCyan.withValues(alpha: 0.12),
+                              border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.3)),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '100%',
-                              style: GoogleFonts.inter(color: brandGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.inter(color: AppTheme.brandCyan, fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                           ),
                         )
@@ -937,25 +970,25 @@ class _SearchArtistViewState extends State<SearchArtistView>
                     )
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Currency', style: GoogleFonts.inter(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text('Currency', style: GoogleFonts.inter(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
                     Container(
                       height: 40,
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF041510),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppTheme.scaffoldBackground,
+                        border: Border.all(color: AppTheme.borderColor),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _currency,
-                          dropdownColor: const Color(0xFF081F17),
+                          dropdownColor: AppTheme.cardBackground,
                           icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.5)),
-                          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
                           onChanged: (newValue) {
                             if (newValue != null) {
                               setState(() => _currency = newValue);

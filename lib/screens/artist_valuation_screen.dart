@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
 import '../core/utils/pdf_generator.dart';
 import '../features/dashboard/models/valuation_models.dart';
@@ -136,7 +137,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Slate 900
+      backgroundColor: AppTheme.scaffoldBackground,
       body: BlocBuilder<SearchArtistCubit, SearchArtistState>(
         builder: (context, state) {
           if (state is SearchArtistLoading) {
@@ -159,13 +160,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
 
   Widget _buildLoadingState() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0F172A), Color(0xFF022C22), Color(0xFF064E3B)],
-        ),
-      ),
+      color: AppTheme.scaffoldBackground,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -177,7 +172,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
             const SizedBox(height: 24),
             Text(
               'Computing Catalog Valuation...',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -209,7 +204,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
               const SizedBox(height: 16),
               Text(
                 'Valuation Error',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.inter(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -227,7 +222,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Back to Search'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: AppTheme.blueAccent,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -255,7 +250,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.blueAccent),
               child: const Text('Go to Search', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -271,7 +266,6 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
     final artistName = artist.title ?? widget.query ?? 'Artist';
 
     // Calculate dynamic valuation based on sliders and platform filter
-    final baseAnnualRev = _calculateAnnualRevenue(state);
     final baseEstimate = _calculateBaseEstimate(state);
     
     // Fine-tuned valuation = baseEstimate * (royalty / 100) * (multiple / 14)
@@ -353,14 +347,14 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
       expandedHeight: 490,
       pinned: true,
       elevation: 0,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppTheme.scaffoldBackground,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Text(
         'Artist Valuation',
-        style: GoogleFonts.outfit(
+        style: GoogleFonts.inter(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w700,
@@ -371,7 +365,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
         IconButton(
           icon: Icon(
             _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-            color: _isBookmarked ? const Color(0xFF00E5FF) : Colors.white70,
+            color: _isBookmarked ? AppTheme.brandCyan : Colors.white70,
           ),
           onPressed: () => _toggleBookmark(artistName),
         ),
@@ -387,9 +381,8 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0F172A),
-                Color(0xFF022C22),
-                Color(0xFF064E3B),
+                AppTheme.scaffoldBackground,
+                AppTheme.cardBackground,
               ],
             ),
           ),
@@ -405,10 +398,10 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white12, width: 3),
+                      border: Border.all(color: AppTheme.borderColor, width: 3),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                          color: AppTheme.brandCyan.withValues(alpha: 0.2),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         )
@@ -430,14 +423,14 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: AppTheme.brandCyan.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.25)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.auto_awesome, color: Color(0xFF00E5FF), size: 12),
+                        const Icon(Icons.auto_awesome, color: AppTheme.brandCyan, size: 12),
                         const SizedBox(width: 6),
                         Text(
                           'MUSIC STATS',
@@ -459,7 +452,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -472,7 +465,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                   Text(
                     artist.region,
                     style: GoogleFonts.inter(
-                      color: Colors.white60,
+                      color: AppTheme.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -484,14 +477,14 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0B1E19).withValues(alpha: 0.9),
+                      color: AppTheme.cardBackground,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                        color: AppTheme.brandCyan.withValues(alpha: 0.3),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
+                          color: AppTheme.brandCyan.withValues(alpha: 0.1),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         )
@@ -509,13 +502,22 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          Formatters.formatCurrency(adjustedValuation),
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 34,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
+                        SizedBox(
+                          width: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.center,
+                            child: Text(
+                              Formatters.formatCurrency(adjustedValuation),
+                              maxLines: 1,
+                              softWrap: false,
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontSize: 34,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -580,13 +582,13 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Card Background
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           )
         ],
@@ -666,7 +668,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -692,9 +694,9 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: AppTheme.cardBackground,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: [
@@ -866,7 +868,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
           children: [
             Text(
               'Top Tracks Performance',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -895,8 +897,9 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: AppTheme.cardBackground,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.borderColor),
             ),
             child: Center(
               child: Text(
@@ -921,11 +924,11 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
   }
 
   Widget _buildTrackCard(TrackModel track, int rank) {
-    Color platformColor = const Color(0xFF1DB954); // Spotify
+    Color platformColor = AppTheme.spotifyGreen; // Spotify
     IconData platformIcon = Icons.music_note;
 
     if (track.platform == 'youtube') {
-      platformColor = const Color(0xFFFF0000);
+      platformColor = AppTheme.youtubeRed;
       platformIcon = Icons.play_arrow;
     } else if (track.platform == 'apple' || track.platform == 'itunes') {
       platformColor = const Color(0xFFFA243C);
@@ -935,9 +938,9 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
         children: [
@@ -954,7 +957,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
             ),
             child: Text(
               '#$rank',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: rank <= 3 ? const Color(0xFF34D399) : Colors.white70,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -1024,7 +1027,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                 track.viewCountFormatted != 'N/A'
                     ? track.viewCountFormatted
                     : (track.streamCount > 0 ? Formatters.formatNumber(track.streamCount.toDouble()) : 'N/A'),
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.inter(
                   color: Colors.white,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -1073,9 +1076,9 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: AppTheme.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: AppTheme.borderColor),
           ),
           child: Row(
             children: [
@@ -1083,10 +1086,11 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                  color: AppTheme.brandCyan.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.brandCyan.withValues(alpha: 0.25)),
                 ),
-                child: const Icon(Icons.access_time_filled, color: Color(0xFF38BDF8), size: 22),
+                child: const Icon(Icons.access_time_filled, color: AppTheme.brandCyan, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1096,7 +1100,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                     Text(
                       'Weighted Average Catalog Age',
                       style: GoogleFonts.inter(
-                        color: Colors.white70,
+                        color: AppTheme.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1104,7 +1108,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                     const SizedBox(height: 2),
                     Text(
                       '$avgAge Years',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -1135,9 +1139,9 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: AppTheme.cardBackground,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              border: Border.all(color: AppTheme.borderColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1162,7 +1166,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                   maxLines: _isBioExpanded ? 100 : 3,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
-                    color: Colors.white70,
+                    color: AppTheme.textSecondary,
                     fontSize: 12.5,
                     height: 1.5,
                   ),
@@ -1173,7 +1177,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
                   child: Text(
                     _isBioExpanded ? 'Read less' : 'Read more',
                     style: GoogleFonts.inter(
-                      color: const Color(0xFF00E5FF),
+                      color: AppTheme.brandCyan,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1188,7 +1192,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
         // 3. Official Profile Links
         Text(
           'Official Artist Profiles',
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -1282,14 +1286,14 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
         top: 12,
         bottom: MediaQuery.of(context).padding.bottom + 12,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        border: const Border(top: BorderSide(color: Colors.white10)),
+      decoration: const BoxDecoration(
+        color: AppTheme.cardBackground,
+        border: Border(top: BorderSide(color: AppTheme.borderColor)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: Colors.black,
             blurRadius: 16,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4),
           )
         ],
       ),
@@ -1297,12 +1301,12 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
         height: 52,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF10B981), Color(0xFF047857)],
+            colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withValues(alpha: 0.35),
+              color: const Color(0xFF2563EB).withValues(alpha: 0.35),
               blurRadius: 16,
               offset: const Offset(0, 4),
             )
@@ -1337,14 +1341,6 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
 
   // --- Calculation & Extraction Helpers ---
 
-  double _calculateAnnualRevenue(SearchArtistLoaded state) {
-    if (_activePlatformFilter == 'combined') {
-      return state.valuationData.annualRevenue;
-    }
-    final breakdown = state.valuationData.platformBreakdowns[_activePlatformFilter];
-    return breakdown?.totalAnnualRevenue ?? (state.valuationData.annualRevenue / 3);
-  }
-
   double _calculateBaseEstimate(SearchArtistLoaded state) {
     if (_cachedPlatformBaselines.containsKey(_activePlatformFilter) &&
         _cachedPlatformBaselines[_activePlatformFilter]! > 0) {
@@ -1354,37 +1350,46 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
       return state.valuationData.estimatedValue;
     }
     final key = _activePlatformFilter == 'apple' ? 'itunes' : _activePlatformFilter;
+    if (_cachedPlatformBaselines.containsKey(key) &&
+        _cachedPlatformBaselines[key]! > 0) {
+      return _cachedPlatformBaselines[key]!;
+    }
     final breakdown = state.valuationData.platformBreakdowns[key] ??
         state.valuationData.platformBreakdowns[_activePlatformFilter];
-    return breakdown?.midEstimate ?? (state.valuationData.estimatedValue / 3);
+    return breakdown?.midEstimate ?? 0.0;
   }
 
   String _getPopularityScore(SearchArtistLoaded state) {
     if (_activePlatformFilter == 'spotify' || _activePlatformFilter == 'combined') {
       final pop = state.artistData.popularity;
-      return pop > 0 ? '$pop / 100' : '92 / 100';
+      return pop > 0 ? '$pop / 100' : 'N/A';
     }
-    return '90 / 100';
+    return 'N/A';
   }
 
   String _getMonthlyListenersFormatted(SearchArtistLoaded state) {
     if (_activePlatformFilter == 'youtube') {
       final views = state.youtubeData?.totalViews ?? 0;
-      return views > 0 ? Formatters.formatNumber(views.toDouble()) : '1.2B';
+      return views > 0 ? Formatters.formatNumber(views.toDouble()) : 'N/A';
     }
     if (state.artistData.monthlyListeners != null && state.artistData.monthlyListeners!.isNotEmpty) {
-      return state.artistData.monthlyListeners!;
+      final raw = state.artistData.monthlyListeners!;
+      final numVal = Formatters.parseNum(raw);
+      if (numVal > 0) {
+        return Formatters.formatNumber(numVal.toDouble());
+      }
+      return raw;
     }
-    return '85.4M';
+    return 'N/A';
   }
 
   String _getFollowersFormatted(SearchArtistLoaded state) {
     if (_activePlatformFilter == 'youtube') {
       final subs = state.youtubeData?.totalSubscribers ?? 0;
-      return subs > 0 ? Formatters.formatNumber(subs.toDouble()) : '48.2M';
+      return subs > 0 ? Formatters.formatNumber(subs.toDouble()) : 'N/A';
     }
     final followers = state.artistData.totalFollowers;
-    return followers > 0 ? Formatters.formatNumber(followers.toDouble()) : '94.6M';
+    return followers > 0 ? Formatters.formatNumber(followers.toDouble()) : 'N/A';
   }
 
   List<TrackModel> _getFilteredTopTracks(SearchArtistLoaded state) {
@@ -1414,8 +1419,10 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
   }
 
   String _calculateAverageCatalogAge(SearchArtistLoaded state) {
+    final key = _activePlatformFilter == 'apple' ? 'itunes' : _activePlatformFilter;
     if (_activePlatformFilter != 'combined') {
-      final breakdown = state.valuationData.platformBreakdowns[_activePlatformFilter];
+      final breakdown = state.valuationData.platformBreakdowns[key] ??
+          state.valuationData.platformBreakdowns[_activePlatformFilter];
       if (breakdown != null && breakdown.averageDollarAge > 0) {
         return breakdown.averageDollarAge.toStringAsFixed(1);
       }
@@ -1426,7 +1433,7 @@ class _ArtistValuationScreenState extends State<ArtistValuationScreen> {
       final sum = breakdowns.fold(0.0, (acc, b) => acc + b.averageDollarAge);
       return (sum / breakdowns.length).toStringAsFixed(1);
     }
-    return '4.2';
+    return 'N/A';
   }
 }
 
